@@ -28,5 +28,5 @@ app.post('/alert_data', function (req, res) {
     let body = req.body; // JSON.parse(JSON.stringif());
     console.log(body);
     
-    res.send({ status: 'SUCCESS' });
+    res.send({ status: 'SUCCESS IN RWI SERVER' });
   });
