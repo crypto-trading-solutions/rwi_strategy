@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const http = require('http');
+const router = require('./routes/api');
 
 const Binance = require('node-binance-api');
 const binance = new Binance().options({
@@ -36,9 +37,4 @@ server.listen(port, () => {
 
 server.on('error', handleHttpServerErrors);
 
-app.post('/alert_data', function (req, res) {
-    let body = req.body; // JSON.parse(JSON.stringif());
-    console.log(body);
-    
-    res.send({ status: 'SUCCESS IN RWI SERVER' });
-  });
+app.use('/', router);
