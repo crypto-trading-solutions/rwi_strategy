@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start dev": "pm2 start ecosystem.config.js --env development",
-    "start prod": "pm2 start ecosystem.config.js --env production" 
+    "start prod": "pm2 start ecosystem.config.js --env production",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
