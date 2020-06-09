@@ -42,6 +42,8 @@ app.post('/alert_data', function (req, res) {
     const {Ticker, Price, Time, Strategy, Action} = req.body;
 
     const alert = new TradingViewAlert(Ticker, Price, Time, Strategy, Action);
+
+    console.log(alert);
     
     res.send(alert);
 });
