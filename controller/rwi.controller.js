@@ -13,52 +13,86 @@ class RwiController {
         let deposit = '';
         let symbolQuantityPrecision = '';
 
+        await binance.futuresLeverage(adapterData.ticker, 1)
+        await binance.futuresMarginType(adapterData.ticker, 'ISOLATED')
+
         const checkOpenDealsResult = await checkOpenDeals(adapterData.ticker, adapterData.price, adapterData.action);
 
-        if(checkOpenDealsResult.error) return res.status(400).send(checkOpenDealsResult.error);
+        if (checkOpenDealsResult.error) {
+            console.log(checkOpenDealsResult.error);
+            console.log(checkOpenDealsResult.order);
+            return res.status(400).send(checkOpenDealsResult);
+        }
 
-        res.status(200).send(checkOpenDealsResult);
+        // Get all futures wallet balance
+        const [futuresBalanceError, futuresBalance] = await to(
+            binance.futuresBalance()
+        )
+        if (futuresBalanceError) return res.status(400).send(futuresBalanceError);
 
-        // await binance.futuresLeverage(adapterData.ticker, 1)
-        // await binance.futuresMarginType(adapterData.ticker, 'ISOLATED')
+        // Get balance for current asset
+        for (let i = 0; i < futuresBalance.length; i++) {
+            if (futuresBalance[i].asset === 'USDT') {
+                deposit = futuresBalance[i].balance;
+                break;
+            }
+        }
 
-        // // Get all futures wallet balance
-        // const [futuresBalanceError, futuresBalance] = await to(
-        //     binance.futuresBalance()
-        // )
-        // if (futuresBalanceError) return res.status(400).send(futuresBalanceError);
+        const [futuresExchangeInfoError, futuresExchangeInfo] = await to(
+            binance.futuresExchangeInfo()
+        )
+        if (futuresExchangeInfoError) return res.status(400).send(futuresExchangeInfoError);
 
-        // // Get balance for current asset
-        // for (let i = 0; i < futuresBalance.length; i++) {
-        //     if (futuresBalance[i].asset === 'USDT') {
-        //         deposit = futuresBalance[i].balance;
-        //         break;
-        //     }
-        // }
+        // Get quantity precision for current ticker
+        for (let i = 0; i < futuresExchangeInfo.symbols.length; i++) {
+            if (futuresExchangeInfo.symbols[i].symbol === adapterData.ticker) {
+                symbolQuantityPrecision = futuresExchangeInfo.symbols[i].quantityPrecision;
+                break;
+            }
+        }
 
-        // const [futuresExchangeInfoError, futuresExchangeInfo] = await to(
-        //     binance.futuresExchangeInfo()
-        // )
-        // if (futuresExchangeInfoError) return res.status(400).send(futuresExchangeInfoError);
+        // Count order size for deal
+        const orderSize = roundDown(deposit / adapterData.price, symbolQuantityPrecision);
 
-        // // Get quantity precision for current ticker
-        // for(let i = 0; i < futuresExchangeInfo.symbols.length; i++) {
-        //     if(futuresExchangeInfo.symbols[i].symbol === adapterData.ticker){
-        //         symbolQuantityPrecision = futuresExchangeInfo.symbols[i].quantityPrecision;
-        //         break;
-        //     }
-        // }
+        console.log(checkOpenDealsResult.code);
+        switch (checkOpenDealsResult.code) {
+            case 'open':
+                // Open a deal for current ticker
 
-        // // Count order size for deal
-        // const orderSize = roundDown(deposit / adapterData.price, symbolQuantityPrecision);
+                // Sell deal doesnt work , need check type of orderSize 
+                // if (adapterData.action === 'SELL') {
+                //     const [openSellDealError, openSellDeal] = await to(
+                //         binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                //     )
+                //     if (openSellDealError) return res.status(400).send(openSellDealError);
 
-        // // Open a deal for current ticker
-        // const [openDealError, openDeal] = await to(
-        //     binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
-        // )
-        // if(openDealError) return res.status(400).send(openDealError);
+                //     return res.status(200).send(openSellDeal);
+                // }
 
-        // res.status(200).send(openDeal);
+                let [openBuyDealError, openBuyDeal] = await to(
+                    binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                )
+                if (openBuyDealError) return res.status(400).send(openBuyDealError);
+
+                return res.status(200).send(openBuyDeal);
+            case 'reopen':
+                let [cancelDealError, cancelDeal] = await to(
+                    binance.futuresCancel(checkOpenDealsResult.order.symbol, { orderId: checkOpenDealsResult.order.orderId })
+                )
+                if (cancelDealError) return res.status(400).send(cancelDealError);
+
+                // Open a deal for current ticker
+                let [openDealError, openDeal] = await to(
+                    binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                )
+                if (openDealError) return res.status(400).send(openDealError);
+
+                return res.status(200).send(openDeal);
+            case 'relevant':
+                return res.status(200).send(checkOpenDealsResult);
+        }
+
+        res.status(400).send({error: 'Error with open deal'});
     }
 }
 
