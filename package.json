@@ -1,0 +1,27 @@
+{
+  "name": "rwi_strategy",
+  "version": "1.0.0",
+  "description": "Binance RWI module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start dev": "pm2 start ecosystem.config.js --env development",
+    "start prod": "pm2 start ecosystem.config.js --env production",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crypto-trading-solutions/RWI_strategy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/crypto-trading-solutions/RWI_strategy/issues"
+  },
+  "homepage": "https://github.com/crypto-trading-solutions/RWI_strategy#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "node-binance-api": "^0.11.6"
+  }
+}
