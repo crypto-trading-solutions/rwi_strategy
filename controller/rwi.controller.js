@@ -6,11 +6,13 @@ const binance = new Binance().options({
 });
 const roundDown = require('../utils/roundDown');
 const manageDeals = require('../utils/manageDeals');
+const tradingConfig = require('../tradingConfig');
+const managePositions = require('../utils/managePositions');
 
 class RwiController {
     async makeDeal(req, res, next) {
         const adapterData = req.body;
-        let deposit = '';
+        let deposit = tradingConfig.orderSize;
         let symbolQuantityPrecision = '';
 
         await binance.futuresLeverage(adapterData.ticker, 1)
@@ -30,12 +32,12 @@ class RwiController {
         if (futuresBalanceError) return res.status(400).send(futuresBalanceError);
 
         // Get balance for current asset
-        for (let i = 0; i < futuresBalance.length; i++) {
-            if (futuresBalance[i].asset === 'USDT') {
-                deposit = futuresBalance[i].balance;
-                break;
-            }
-        }
+        // for (let i = 0; i < futuresBalance.length; i++) {
+        //     if (futuresBalance[i].asset === 'USDT') {
+        //         deposit = futuresBalance[i].balance;
+        //         break;
+        //     }
+        // }
 
         const [futuresExchangeInfoError, futuresExchangeInfo] = await to(
             binance.futuresExchangeInfo()
@@ -57,55 +59,58 @@ class RwiController {
         console.log(orderSize);
         console.log(deposit);
         console.log(futuresExchangeInfo);
-        switch (manageDealResult.code) {
-            case 'open':
-                // Open a deal for current ticker
+        // switch (manageDealResult.code) {
+        //     case 'open':
+        //         // Open a deal for current ticker
+        //         if (adapterData.action === 'SELL') {
+        //             const [openSellDealError, openSellDeal] = await to(
+        //                 binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+        //             )
+        //             if (openSellDealError) return res.status(400).send(openSellDealError);
 
-                // Sell deal doesnt work , need check type of orderSize 
-                if (adapterData.action === 'SELL') {
-                    const [openSellDealError, openSellDeal] = await to(
-                        binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
-                    )
-                    if (openSellDealError) return res.status(400).send(openSellDealError);
+        //             return res.status(200).send(openSellDeal);
+        //         }
 
-                    return res.status(200).send(openSellDeal);
-                }
+        //         {
+        //             let [openBuyDealError, openBuyDeal] = await to(
+        //                 binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+        //             )
+        //             if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
-                {
-                    let [openBuyDealError, openBuyDeal] = await to(
-                        binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
-                    )
-                    if (openBuyDealError) return res.status(400).send(openBuyDealError);
+        //             return res.status(200).send(openBuyDeal);
+        //         }
+        //     case 'closeDeal':
+        //         let [cancelDealError, cancelDeal] = await to(
+        //             binance.futuresCancel(manageDealResult.order.symbol, { orderId: manageDealResult.order.orderId })
+        //         )
+        //         if (cancelDealError) return res.status(400).send(cancelDealError);
 
-                    return res.status(200).send(openBuyDeal);
-                }
-            case 'closeDeal':
-                let [cancelDealError, cancelDeal] = await to(
-                    binance.futuresCancel(manageDealResult.order.symbol, { orderId: manageDealResult.order.orderId })
-                )
-                if (cancelDealError) return res.status(400).send(cancelDealError);
+        //         // Open a deal for current ticker
+        //         if (adapterData.action === 'SELL') {
+        //             const [openSellDealError, openSellDeal] = await to(
+        //                 binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+        //             )
+        //             if (openSellDealError) return res.status(400).send(openSellDealError);
 
-                // Open a deal for current ticker
-                if (adapterData.action === 'SELL') {
-                    const [openSellDealError, openSellDeal] = await to(
-                        binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
-                    )
-                    if (openSellDealError) return res.status(400).send(openSellDealError);
+        //             return res.status(200).send(openSellDeal);
+        //         }
 
-                    return res.status(200).send(openSellDeal);
-                }
+        //         {
+        //             let [openBuyDealError, openBuyDeal] = await to(
+        //                 binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+        //             )
+        //             if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
-                {
-                    let [openBuyDealError, openBuyDeal] = await to(
-                        binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
-                    )
-                    if (openBuyDealError) return res.status(400).send(openBuyDealError);
+        //             return res.status(200).send(openBuyDeal);
+        //         }
+        // }
 
-                    return res.status(200).send(openBuyDeal);
-                }
-        }
+        const managePositionsResult = await managePositions();
+        if(managePositionsResult.error) return res.status(400).send(managePositionsResult);
 
-        res.status(400).send({ error: 'Error with open deal' });
+        res.status(200).send(managePositionsResult);
+
+        // res.status(400).send({ error: 'Error with open deal' });
     }
 }
 
