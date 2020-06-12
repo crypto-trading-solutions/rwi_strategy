@@ -5,7 +5,7 @@ const binance = new Binance().options({
     APISECRET: process.env.APISECRET
 });
 const roundDown = require('../utils/roundDown');
-const checkOpenDeals = require('../utils/checkOpenDeal');
+const manageDeals = require('../utils/manageDeals');
 
 class RwiController {
     async makeDeal(req, res, next) {
@@ -16,12 +16,11 @@ class RwiController {
         await binance.futuresLeverage(adapterData.ticker, 1)
         await binance.futuresMarginType(adapterData.ticker, 'ISOLATED')
 
-        const checkOpenDealsResult = await checkOpenDeals(adapterData.ticker, adapterData.price, adapterData.action);
+        const manageDealResult = await manageDeals(adapterData.ticker, adapterData.price, adapterData.action);
 
-        if (checkOpenDealsResult.error) {
-            console.log(checkOpenDealsResult.error);
-            console.log(checkOpenDealsResult.order);
-            return res.status(400).send(checkOpenDealsResult);
+        if (manageDealResult.error) {
+            console.log(manageDealResult);
+            return res.status(400).send(manageDealResult);
         }
 
         // Get all futures wallet balance
@@ -54,45 +53,59 @@ class RwiController {
         // Count order size for deal
         const orderSize = roundDown(deposit / adapterData.price, symbolQuantityPrecision);
 
-        console.log(checkOpenDealsResult.code);
-        switch (checkOpenDealsResult.code) {
+        console.log(manageDealResult.code);
+        console.log(orderSize);
+        console.log(deposit);
+        console.log(futuresExchangeInfo);
+        switch (manageDealResult.code) {
             case 'open':
                 // Open a deal for current ticker
 
                 // Sell deal doesnt work , need check type of orderSize 
-                // if (adapterData.action === 'SELL') {
-                //     const [openSellDealError, openSellDeal] = await to(
-                //         binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
-                //     )
-                //     if (openSellDealError) return res.status(400).send(openSellDealError);
+                if (adapterData.action === 'SELL') {
+                    const [openSellDealError, openSellDeal] = await to(
+                        binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                    )
+                    if (openSellDealError) return res.status(400).send(openSellDealError);
 
-                //     return res.status(200).send(openSellDeal);
-                // }
+                    return res.status(200).send(openSellDeal);
+                }
 
-                let [openBuyDealError, openBuyDeal] = await to(
-                    binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
-                )
-                if (openBuyDealError) return res.status(400).send(openBuyDealError);
+                {
+                    let [openBuyDealError, openBuyDeal] = await to(
+                        binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                    )
+                    if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
-                return res.status(200).send(openBuyDeal);
-            case 'reopen':
+                    return res.status(200).send(openBuyDeal);
+                }
+            case 'closeDeal':
                 let [cancelDealError, cancelDeal] = await to(
-                    binance.futuresCancel(checkOpenDealsResult.order.symbol, { orderId: checkOpenDealsResult.order.orderId })
+                    binance.futuresCancel(manageDealResult.order.symbol, { orderId: manageDealResult.order.orderId })
                 )
                 if (cancelDealError) return res.status(400).send(cancelDealError);
 
                 // Open a deal for current ticker
-                let [openDealError, openDeal] = await to(
-                    binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
-                )
-                if (openDealError) return res.status(400).send(openDealError);
+                if (adapterData.action === 'SELL') {
+                    const [openSellDealError, openSellDeal] = await to(
+                        binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                    )
+                    if (openSellDealError) return res.status(400).send(openSellDealError);
 
-                return res.status(200).send(openDeal);
-            case 'relevant':
-                return res.status(200).send(checkOpenDealsResult);
+                    return res.status(200).send(openSellDeal);
+                }
+
+                {
+                    let [openBuyDealError, openBuyDeal] = await to(
+                        binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                    )
+                    if (openBuyDealError) return res.status(400).send(openBuyDealError);
+
+                    return res.status(200).send(openBuyDeal);
+                }
         }
 
-        res.status(400).send({error: 'Error with open deal'});
+        res.status(400).send({ error: 'Error with open deal' });
     }
 }
 
