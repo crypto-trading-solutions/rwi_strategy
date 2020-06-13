@@ -5,15 +5,35 @@ const binance = new Binance().options({
     APISECRET: process.env.APISECRET
 });
 
-module.exports = async () => {
+// Codes description
+// nop -> no opened positions
+// olp -> opened long position
+// osp -> opened short position
+
+module.exports = async (symbol) => {
     const [futurePositionsError, futurePositions] = await to(
         binance.futuresPositionRisk()
     )
-    if(futurePositionsError) return {error: 'Error with getting positions',futurePositionsError};
+    if (futurePositionsError) return { error: 'Error with getting positions', futurePositionsError };
 
     const symbolPosition = futurePositions.find(obj => {
-        return obj.symbol === 'ETHUSDT'
-      })
+        return obj.symbol === symbol
+    })
 
-    return symbolPosition;
+    if (parseInt(symbolPosition.positionAmt) === 0) return { code: 'nop' }
+
+    if(parseFloat(symbolPosition.positionAmt) > 0){
+        symbolPosition.positionSide = 'BUY';
+    } else if(parseFloat(symbolPosition.positionAmt) < 0){
+        symbolPosition.positionSide = 'SELL';
+    }
+
+    switch (symbolPosition.positionSide) {
+        case 'BUY':
+            return { code: 'olp', position: symbolPosition }
+        case 'SELL':
+            return { code: 'osp', position: symbolPosition }
+    }
+
+    return {error: 'Something went wrong!'};
 }
