@@ -29,11 +29,41 @@ class BinanceRequestProvider {
      * APIURL: POST /api/v3/order
      * @return {Promise<HttpRequest>}
      */
-    async futuresOrder(symbol, side, type, quantity, price, timeInForce = 'GTX'){
+    async createOrder(symbol, side, type, quantity, price, timeInForce = 'GTX'){
         const query = await queryBuilder({symbol, side, type, timeInForce, quantity, price});
         const signaturedQuery = await signRequest(query);
         return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'POST', this.apiKey);
     }
+
+    /**
+     * Get information about account with balances
+     * Type: GET
+     * APIURL: GET /api/v3/account
+     * @return {Promise<HttpRequest>}
+     */
+    async accountInformation(){
+        const query = await queryBuilder({});
+        const signaturedQuery = await signRequest(query);
+        return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'GET', this.apiKey);
+    }
+
+
+    /**
+     * Cancel order
+     * @param {string} symbol - Example: LTCBTC
+     * @param {long} orderId - Not Required
+     * @param {string} origClientOrderId - Not Required
+     * @param {string} newClientOrderId - Not Required
+     * Type: DELETE
+     * APIURL: DELETE /api/v3/order
+     * @return {Promise<HttpRequest>}
+     */
+    async cancelOrder(symbol){
+        const query = await queryBuilder({symbol});
+        const signaturedQuery = await signRequest(query);
+        return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'DELETE', this.apiKey);
+    }
+
 
 
     /**
@@ -42,7 +72,7 @@ class BinanceRequestProvider {
      * APIURL: POST /api/v3/exchangeInfo
      * @return {Promise<HttpRequest>}
      */
-    async futuresExchangeInfo(){
+    async exchangeInfo(){
         return fetch(`${this.apiUrl}/v3/exchangeInfo`, 'GET', this.apiKey);
     }
 
@@ -55,7 +85,7 @@ class BinanceRequestProvider {
      * APIURL: POST /api/v3/openOrders
      * @return {Promise<HttpRequest>}
      */
-    async futuresOpenOrders(symbol){
+    async openedOrders(symbol){
         const query = await queryBuilder({symbol});
         return fetch(`${this.apiUrl}/v3/openOrders` + query, 'GET', this.apiKey);
     }
