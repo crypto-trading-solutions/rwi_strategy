@@ -18,6 +18,7 @@ const port = process.env.PORT || 4040;
 const ipAddress = process.env.IP_ADDRESS;
 
 const handleHttpServerErrors = require('./utils/handleHttpServerErrors');
+const TradingViewAlert = require("./serializers/TradingViewAlert");
 
 var express = require('express'),
     app     = express();
@@ -38,3 +39,9 @@ server.listen(port, () => {
 server.on('error', handleHttpServerErrors);
 
 app.use('/', router);
+
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});

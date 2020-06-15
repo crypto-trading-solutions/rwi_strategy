@@ -2,6 +2,7 @@
 
 Data schema from tradingview-adapter server 
 JSON:
-{"Ticker":"{{ticker}}""Price":"{{close}}","Time" : "{{time}}","Strategy":"rwi","Action":"long"}
+
+{ Ticker: 'ETHUSDT', Price: ' 242.26', Time: '2020-06-09T20:02:00Z', Strategy: 'rwi', Action: 'buy' || 'sell' }
 
 Binance RWI module 
