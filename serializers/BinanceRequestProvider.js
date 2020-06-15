@@ -13,8 +13,7 @@ class BinanceRequestProvider {
 
     constructor(apiKey, secretKey){
         this.secretKey = secretKey;
-        this.apiKey = apiKey;
-        // this.headers['X-MBX-APIKEY'] = apiKey;        
+        this.apiKey = apiKey;     
     }
 
     /**
@@ -41,7 +40,7 @@ class BinanceRequestProvider {
      * APIURL: GET /api/v3/account
      * @return {Promise<HttpRequest>}
      */
-    async accountInformation(){
+    async accountInfo(){
         const query = await queryBuilder({});
         const signaturedQuery = await signRequest(query);
         return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'GET', this.apiKey);
@@ -77,17 +76,32 @@ class BinanceRequestProvider {
     }
 
 
-
     /**
      * Get opened orders by currency pair
      * @param {string} symbol - Example: LTCBTC
-     * Type: POST
-     * APIURL: POST /api/v3/openOrders
+     * Type: GET
+     * APIURL: GET /api/v3/openOrders
      * @return {Promise<HttpRequest>}
      */
-    async openedOrders(symbol){
+    async getOpenOrders(symbol){
         const query = await queryBuilder({symbol});
         return fetch(`${this.apiUrl}/v3/openOrders` + query, 'GET', this.apiKey);
+    }
+
+
+
+    /**
+     * Change user's position mode 
+     * (Hedge Mode or One-way Mode) on EVERY symbol
+     * @param {string} dualSidePosition - Example: "true": Hedge Mode mode; "false": One-way Mode
+     * Type: POST
+     * APIURL: POST /fapi/v3/openOrders
+     * @return {Promise<HttpRequest>}
+     */
+    futuresChangeCurrentPosition(dualSidePosition){
+        const query = await queryBuilder({dualSidePosition});
+        const signaturedQuery = await signRequest(query);
+        return fetch(`${this.fapiUrl}/v3/openOrders` + signaturedQuery, 'POST', this.apiKey);
     }
 
 
@@ -107,13 +121,16 @@ class BinanceRequestProvider {
 
 
     /**
-     * futuresPositionRisk
-     * Type: POST
-     * APIURL: POST /api/v1/positionRisk
+     * Get current positions information.
+     * @param {string} symbol - Not Required
+     * Type: GET
+     * APIURL: GET /fapi/v2/positionRisk
      * @return {Promise<HttpRequest>}
      */
-    async futuresPositionRisk(){
-        return fetch(`${this.fapiUrl}/v1/positionRisk`, 'POST', this.apiKey);
+    async futuresPositionRisk(symbol){
+        const query = await queryBuilder({symbol});
+        const signaturedQuery = await signRequest(query);
+        return fetch(`${this.fapiUrl}/v2/positionRisk` + signaturedQuery, 'GET', this.apiKey);
     }
 
 
