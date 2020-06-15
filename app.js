@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const http = require('http');
+const router = require('./routes/api');
 
 // const Binance = require('node-binance-api');
 // const binance = new Binance().options({
@@ -38,36 +39,10 @@ server.listen(port, () => {
 
 server.on('error', handleHttpServerErrors);
 
-
-app.post('/alert_data', async (req, res) => {
-    // const {Ticker, Price, Time, Strategy, Action} = req.body;
-
-    const apiKey = process.env.APIKEY;
-    const secretKey = process.env.APISECRET;
-
-    const binance = new BinanceRequestProvider(apiKey, secretKey);
-
-    const exchangeInfo = await binance.futuresExchangeInfo();
-
-    // const alert = new TradingViewAlert(Ticker, Price, Time, Strategy, Action);
-
-
-
-    // console.log(alert);
-    
-    res.status(200).json(exchangeInfo);
-});
+app.use('/', router);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
     next(err);
-});
-
-app.use((error, req, res, next) => {
-    res.status(error.status || 500);
-    res.json({
-        error: error.message,
-        description: (app.get('env') === 'development') ? error : {}
-    });
 });
