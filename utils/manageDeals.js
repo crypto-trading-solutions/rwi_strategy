@@ -1,15 +1,15 @@
 const to = require('await-to-js').default;
-const Binance = require('node-binance-api');
-const binance = new Binance().options({
-    APIKEY: process.env.APIKEY,
-    APISECRET: process.env.APISECRET
-});
+const Binance = require("../serializers/BinanceRequestProvider");
+const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 
 module.exports = async function (symbol, price, action) {
     const [openOrdersError, openOrders] = await to(
-        binance.futuresOpenOrders(symbol)
+        binance.getOpenOrders(symbol)
     )
     if (openOrdersError) return { error: openOrdersError };
+    console.log('openOrders');
+    console.log(openOrders);
+    console.log('openOrders');
 
     for (let i = 0; i < openOrders.length; i++) {
         const dealErrors = await checkDealErrors(openOrders[i], action, symbol);

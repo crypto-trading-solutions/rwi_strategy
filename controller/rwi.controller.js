@@ -1,9 +1,6 @@
 const to = require('await-to-js').default;
-const Binance = require('node-binance-api');
-const binance = new Binance().options({
-    APIKEY: process.env.APIKEY,
-    APISECRET: process.env.APISECRET
-});
+const Binance = require("../serializers/BinanceRequestProvider");
+const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const manageDeals = require('../utils/manageDeals');
 const tradingConfig = require('../tradingConfig');
@@ -28,10 +25,10 @@ class RwiController {
         console.log('manageDealResult');
 
         // Get all futures wallet balance
-        const [futuresBalanceError, futuresBalance] = await to(
-            binance.futuresBalance()
-        )
-        if (futuresBalanceError) return res.status(400).send(futuresBalanceError);
+        // const [futuresBalanceError, futuresBalance] = await to(
+        //     binance.futuresBalance()
+        // )
+        // if (futuresBalanceError) return res.status(400).send(futuresBalanceError);
 
         // Get balance for current asset
         // for (let i = 0; i < futuresBalance.length; i++) {
@@ -42,7 +39,7 @@ class RwiController {
         // }
 
         const [futuresExchangeInfoError, futuresExchangeInfo] = await to(
-            binance.futuresExchangeInfo()
+            binance.exchangeInfo()
         )
         if (futuresExchangeInfoError) return res.status(400).send(futuresExchangeInfoError);
 
@@ -57,6 +54,11 @@ class RwiController {
         // Count order size for deal
         const orderSize = roundDown(deposit / adapterData.price, symbolQuantityPrecision);
 
+        console.log(deposit);
+        console.log(adapterData.price);
+        console.log(symbolQuantityPrecision);
+        console.log(orderSize);
+
         const managePositionsResult = await managePositions(adapterData.ticker);
         if (managePositionsResult.error) return res.status(400).send(managePositionsResult);
 
@@ -64,12 +66,12 @@ class RwiController {
             case 'open':
                 // Check opened position , if we havent got position we open order
                 if (!managePositionsResult.position) {
-                    console.log('managePositionsResult')
-                    console.log(managePositionsResult);
-                    console.log('managePositionsResult')
+                    console.log('managePositionsResult.position');
+                    console.log(managePositionsResult.position);
+                    console.log('managePositionsResult.position');
                     if (adapterData.action === 'SELL') {
                         const [openSellDealError, openSellDeal] = await to(
-                            binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                            binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
                         )
 
                         if (openSellDealError) return res.status(400).send(openSellDealError);
@@ -79,8 +81,9 @@ class RwiController {
 
                     {
                         let [openBuyDealError, openBuyDeal] = await to(
-                            binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                            binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT',  orderSize, adapterData.price)
                         )
+                        console.log(openBuyDeal);
                         if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
                         return res.status(200).send(openBuyDeal);
@@ -90,11 +93,8 @@ class RwiController {
                 // To close a position with Binance you just need to place an opposite order of the same size as your initial order, 
                 // when you "entered that position". 
 
-                let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
 
-                console.log('managePositionCodesResult');
-                console.log(managePositionCodesResult);
-                console.log('managePositionCodesResult');
+                let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
 
                 if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
 
@@ -103,14 +103,14 @@ class RwiController {
                 {
 
                     let [cancelDealError, cancelDeal] = await to(
-                        binance.futuresCancel(manageDealResult.symbol, { orderId: manageDealResult.orderId })
+                        binance.cancelAllOrders(manageDealResult.order.symbol)
                     )
                     if (cancelDealError) return res.status(400).send(cancelDealError);
 
                     if (!managePositionsResult.position) {
                         if (adapterData.action === 'SELL') {
                             const [openSellDealError, openSellDeal] = await to(
-                                binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                                binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
                             )
                             if (openSellDealError) return res.status(400).send(openSellDealError);
 
@@ -119,7 +119,7 @@ class RwiController {
 
                         {
                             let [openBuyDealError, openBuyDeal] = await to(
-                                binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                                binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT',  orderSize, adapterData.price)
                             )
                             if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
@@ -136,7 +136,9 @@ class RwiController {
 
         }
 
-        res.status(400).send({ error: 'Error with app' });
+      res.status(400).send({ error: 'Error with app' });
+
+     //res.status(200).send(futuresExchangeInfo);
     }
 
 
@@ -146,29 +148,27 @@ class RwiController {
             return { error: 'Position in this side already opened', position: currentPosition };
         }
 
-        console.log('currentPosition');
-        console.log(currentPosition);
-        console.log('currentPosition');
-
         switch (currentPosition.positionSide) {
             case 'BUY':
                 {
                     let [closePositionError, closePosition] = await to(
-                        binance.futuresSell(adapterData.ticker, currentPosition.positionAmt, adapterData.price)
+                        binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', currentPosition.positionAmt, adapterData.price)
                     )
-                    console.log('closePosition')
-                    console.log(closePosition)
-                    console.log('closePosition')
                     if (closePositionError) return { error: 'Close BUY position error', closePositionError };
 
-                    let [openSellDealError, openSellDeal] = await to(
-                        binance.futuresSell(adapterData.ticker, orderSize, adapterData.price)
+                    let [openOrdersError, openOrders] = await to(
+                        binance.getOpenOrders(adapterData.ticker)
                     )
+                    if (openOrdersError) return { error: openOrdersError };
 
-                    console.log('openSellDeal')
-                    console.log(openSellDeal)
-                    console.log('openSellDeal')
+                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
 
+                    let [openSellDealError, openSellDeal] = await to(
+                        binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', orderSize, adapterData.price)
+                    )
+                    console.log('openSellDeal');
+                    console.log(openSellDeal);
+                    console.log('openSellDeal');
                     if (openSellDealError) return { error: 'Open SELL deal error', openSellDealError };
 
                     return openSellDeal;
@@ -176,13 +176,27 @@ class RwiController {
             case 'SELL':
                 {
                     let [closePositionError, closePosition] = await to(
-                        binance.futuresBuy(adapterData.ticker, currentPosition.positionAmt, adapterData.price)
+                        binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', Math.abs(currentPosition.positionAmt), adapterData.price)
                     )
+                    
+                    console.log('closePosition');
+                    console.log(closePosition);
+                    console.log('closePosition');
                     if (closePositionError) return { error: 'Close SELL position error', closePositionError };
 
-                    let [openBuyDealError, openBuyDeal] = await to(
-                        binance.futuresBuy(adapterData.ticker, orderSize, adapterData.price)
+                    let [openOrdersError, openOrders] = await to(
+                        binance.getOpenOrders(adapterData.ticker)
                     )
+                    if (openOrdersError) return { error: openOrdersError };
+                    
+                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
+
+                    let [openBuyDealError, openBuyDeal] = await to(
+                        binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
+                    )
+                    console.log('openBuyDeal');
+                    console.log(openBuyDeal);
+                    console.log('openBuyDeal');
                     if (openBuyDealError) return { error: ' Open BUY deal error', openBuyDealError };
 
                     return openBuyDeal;

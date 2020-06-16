@@ -8,8 +8,9 @@ const crypto = require( 'crypto' );
  * @return {string} query string + encrypted query string with binance secret key
  */
 const signRequest = async (query, secretKey) => {
-    const signature = await promisify(crypto.createHmac('sha256', secretKey).update(query).digest('hex'));
-    return query + "&" + signature;
+    const signature = crypto.createHmac('sha256', secretKey).update(query.substr(1)).digest('hex');
+    const signatureQuery = "&" + "signature" + "=" + signature;
+    return query + signatureQuery;
 }
 
 
