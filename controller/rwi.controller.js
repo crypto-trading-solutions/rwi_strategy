@@ -12,18 +12,6 @@ const Binance = require("../serializers/BinanceRequestProvider");
 
 class RwiController {
     async makeDeal(req, res, next) {
-
-        const apiKey = 'vsCUthFrx3S1V6xnHilwVvh5M19Z7FnhQjkz8chBRiuYPSLE80H8PY8ZaM0zhFvt';
-        const secretKey = "43gD9tLfxRw70zgkVLgqk252gy0A1JmAKpCbVuBTLHfDWNRnbwqwJA0uGpBfF9b6";
-        const binance = new Binance(apiKey, secretKey);
-
-        const jopa = await binance.getOpenOrders();
-
-        res.status(200).json(jopa);
-
-        
-
-
         // const adapterData = req.body;
         // // let deposit = tradingConfig.orderSize;
         // // let symbolQuantityPrecision = '';
