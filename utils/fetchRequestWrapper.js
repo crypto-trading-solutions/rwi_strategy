@@ -12,6 +12,7 @@ const fetchRequest = async (url, method, apiKey) => {
     }
     
     const response = await fetch(url, {method, headers});
+
     return response.json();
 }
 

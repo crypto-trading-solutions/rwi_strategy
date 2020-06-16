@@ -3,7 +3,7 @@ const queryStringBuilder = async (json) => {
     const recvWindow = 5000;
     const query = {...json, timestamp, recvWindow};
     const queryStart = "?";
-
+    
     return queryStart + Object.keys(query)
         .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(query[key]))
         .join('&');
