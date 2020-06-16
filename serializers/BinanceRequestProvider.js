@@ -4,16 +4,17 @@ const signRequest = require("../utils/signQueryRequest");
 const fetch = require("../utils/fetchRequestWrapper");
 
 class BinanceRequestProvider {
-    baseApiUrl = 'https://api.binance.com';
+    apiUrl = 'https://api.binance.com/api';
+    fapiUrl = 'https://fapi.binance.com/fapi';
 
-    apiUrl = `${this.baseApiUrl}/api`;
-    wapiUrl = `${this.baseApiUrl}/wapi`;
-    sapiUrl = `${this.baseApiUrl}/sapi`;
-    fapiUrl = `${this.baseApiUrl}/fapi`;
+    // apiUrl = `${this.baseApiUrl}/api`;
+    // wapiUrl = `${this.baseApiUrl}/wapi`;
+    // sapiUrl = `${this.baseApiUrl}/sapi`;
+    
 
     constructor(apiKey, secretKey){
         this.secretKey = secretKey;
-        this.apiKey = apiKey;     
+        this.apiKey = apiKey;
     }
 
     /**
@@ -30,7 +31,7 @@ class BinanceRequestProvider {
      */
     async createOrder(symbol, side, type, quantity, price, timeInForce = 'GTX'){
         const query = await queryBuilder({symbol, side, type, timeInForce, quantity, price});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'POST', this.apiKey);
     }
 
@@ -42,7 +43,7 @@ class BinanceRequestProvider {
      */
     async accountInfo(){
         const query = await queryBuilder({});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'GET', this.apiKey);
     }
 
@@ -59,7 +60,7 @@ class BinanceRequestProvider {
      */
     async cancelOrder(symbol){
         const query = await queryBuilder({symbol});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'DELETE', this.apiKey);
     }
 
@@ -69,6 +70,7 @@ class BinanceRequestProvider {
      * Get exchange info from Binance API
      * Type: POST
      * APIURL: POST /api/v3/exchangeInfo
+     * CHECKED
      * @return {Promise<HttpRequest>}
      */
     async exchangeInfo(){
@@ -81,9 +83,11 @@ class BinanceRequestProvider {
      * @param {string} symbol - Example: LTCBTC
      * Type: GET
      * APIURL: GET /api/v3/openOrders
+     * https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+     * CHECKED
      * @return {Promise<HttpRequest>}
      */
-    async getOpenOrders(symbol){
+    async getOpenOrders(symbol = ''){
         const query = await queryBuilder({symbol});
         return fetch(`${this.apiUrl}/v3/openOrders` + query, 'GET', this.apiKey);
     }
@@ -98,9 +102,9 @@ class BinanceRequestProvider {
      * APIURL: POST /fapi/v3/openOrders
      * @return {Promise<HttpRequest>}
      */
-    futuresChangeCurrentPosition(dualSidePosition){
+    async futuresChangeCurrentPosition(dualSidePosition){
         const query = await queryBuilder({dualSidePosition});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.fapiUrl}/v3/openOrders` + signaturedQuery, 'POST', this.apiKey);
     }
 
@@ -111,12 +115,14 @@ class BinanceRequestProvider {
      * @param {integer} leverage - Target initial leverage: int from 1 to 125 
      * Type: POST
      * APIURL: POST /fapi/v1/leverage
+     * https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+     * CHECKED
      * @return {Promise<HttpRequest>}
      */
     async futuresLeverage(symbol, leverage){
         const query = await queryBuilder({symbol, leverage});
-        const signaturedQuery = await signRequest(query);
-        return fetch(`${this.fapiUrl}/v1/leverage` + signaturedQuery, 'GET', this.apiKey);
+        const signaturedQuery = await signRequest(query, this.secretKey);
+        return fetch(`${this.fapiUrl}/v1/leverage` + signaturedQuery, 'POST', this.apiKey);
     }
 
 
@@ -125,11 +131,13 @@ class BinanceRequestProvider {
      * @param {string} symbol - Not Required
      * Type: GET
      * APIURL: GET /fapi/v2/positionRisk
+     * https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+     * CHECKED
      * @return {Promise<HttpRequest>}
      */
-    async futuresPositionRisk(symbol){
+    async futuresPositionRisk(symbol = ''){
         const query = await queryBuilder({symbol});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.fapiUrl}/v2/positionRisk` + signaturedQuery, 'GET', this.apiKey);
     }
 
@@ -145,7 +153,7 @@ class BinanceRequestProvider {
      */
     async futuresMarginType(symbol, marginType){
         const query = await queryBuilder({symbol, marginType});
-        const signaturedQuery = await signRequest(query);
+        const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.fapiUrl}/v1/marginType` + signaturedQuery, 'POST', this.apiKey);
     }
 
