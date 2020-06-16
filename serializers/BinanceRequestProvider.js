@@ -95,17 +95,18 @@ class BinanceRequestProvider {
 
 
     /**
-     * Change user's position mode 
+     * Change user's position mode
      * (Hedge Mode or One-way Mode) on EVERY symbol
      * @param {string} dualSidePosition - Example: "true": Hedge Mode mode; "false": One-way Mode
      * Type: POST
-     * APIURL: POST /fapi/v3/openOrders
+     * APIURL: POST /fapi/v1/positionSide/dual
+     * https://binance-docs.github.io/apidocs/futures/en/#get-future-account-transaction-history-list-user_data
      * @return {Promise<HttpRequest>}
      */
-    async futuresChangeCurrentPosition(dualSidePosition){
+    async futuresChangePositionMode(dualSidePosition){
         const query = await queryBuilder({dualSidePosition});
         const signaturedQuery = await signRequest(query, this.secretKey);
-        return fetch(`${this.fapiUrl}/v3/openOrders` + signaturedQuery, 'POST', this.apiKey);
+        return fetch(`${this.fapiUrl}/v1/positionSide/dual` + signaturedQuery, 'POST', this.apiKey);
     }
 
 
