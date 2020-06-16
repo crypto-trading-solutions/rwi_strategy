@@ -1,10 +1,6 @@
 const to = require('await-to-js').default;
-const Binance = require('node-binance-api');
-const binance = new Binance().options({
-    APIKEY: process.env.APIKEY,
-    APISECRET: process.env.APISECRET
-});
-
+const Binance = require("../serializers/BinanceRequestProvider");
+const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 // Codes description
 // nop -> no opened positions
 // olp -> opened long position

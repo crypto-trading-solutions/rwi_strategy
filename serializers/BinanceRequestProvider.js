@@ -4,8 +4,7 @@ const signRequest = require("../utils/signQueryRequest");
 const fetch = require("../utils/fetchRequestWrapper");
 
 class BinanceRequestProvider {
-    apiUrl = 'https://api.binance.com/api';
-    fapiUrl = 'https://fapi.binance.com/fapi';
+
 
     // apiUrl = `${this.baseApiUrl}/api`;
     // wapiUrl = `${this.baseApiUrl}/wapi`;
@@ -15,6 +14,8 @@ class BinanceRequestProvider {
     constructor(apiKey, secretKey){
         this.secretKey = secretKey;
         this.apiKey = apiKey;
+        this.apiUrl = `https://api.binance.com/api`;
+        this.fapiUrl = `https://fapi.binance.com/fapi`;
     }
 
     /**
@@ -29,10 +30,10 @@ class BinanceRequestProvider {
      * APIURL: POST /api/v3/order
      * @return {Promise<HttpRequest>}
      */
-    async createOrder(symbol, side, type, quantity, price, timeInForce = 'GTX'){
+    async createOrder(symbol, side, type, quantity, price, timeInForce = 'GTC'){
         const query = await queryBuilder({symbol, side, type, timeInForce, quantity, price});
         const signaturedQuery = await signRequest(query, this.secretKey);
-        return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'POST', this.apiKey);
+        return fetch(`${this.fapiUrl}/v1/order` + signaturedQuery, 'POST', this.apiKey);
     }
 
     /**
@@ -74,7 +75,7 @@ class BinanceRequestProvider {
      * @return {Promise<HttpRequest>}
      */
     async exchangeInfo(){
-        return fetch(`${this.apiUrl}/v3/exchangeInfo`, 'GET', this.apiKey);
+        return fetch(`${this.fapiUrl}/v1/exchangeInfo`, 'GET', this.apiKey);
     }
 
 
@@ -89,7 +90,8 @@ class BinanceRequestProvider {
      */
     async getOpenOrders(symbol = ''){
         const query = await queryBuilder({symbol});
-        return fetch(`${this.apiUrl}/v3/openOrders` + query, 'GET', this.apiKey);
+        const signaturedQuery = await signRequest(query, this.secretKey);
+        return fetch(`${this.fapiUrl}/v1/openOrders` + signaturedQuery, 'GET', this.apiKey);
     }
 
 
@@ -102,7 +104,7 @@ class BinanceRequestProvider {
      * APIURL: POST /fapi/v3/openOrders
      * @return {Promise<HttpRequest>}
      */
-    async futuresChangeCurrentPosition(dualSidePosition){
+    async futuresChangeCurrentPositionMode(dualSidePosition){
         const query = await queryBuilder({dualSidePosition});
         const signaturedQuery = await signRequest(query, this.secretKey);
         return fetch(`${this.fapiUrl}/v3/openOrders` + signaturedQuery, 'POST', this.apiKey);
