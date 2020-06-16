@@ -66,6 +66,9 @@ class RwiController {
             case 'open':
                 // Check opened position , if we havent got position we open order
                 if (!managePositionsResult.position) {
+                    console.log('managePositionsResult.position');
+                    console.log(managePositionsResult.position);
+                    console.log('managePositionsResult.position');
                     if (adapterData.action === 'SELL') {
                         const [openSellDealError, openSellDeal] = await to(
                             binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
@@ -90,6 +93,7 @@ class RwiController {
                 // To close a position with Binance you just need to place an opposite order of the same size as your initial order, 
                 // when you "entered that position". 
 
+
                 let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
 
                 if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
@@ -99,7 +103,7 @@ class RwiController {
                 {
 
                     let [cancelDealError, cancelDeal] = await to(
-                        binance.cancelOrder(manageDealResult.symbol)
+                        binance.cancelAllOrders(manageDealResult.order.symbol)
                     )
                     if (cancelDealError) return res.status(400).send(cancelDealError);
 
@@ -152,10 +156,19 @@ class RwiController {
                     )
                     if (closePositionError) return { error: 'Close BUY position error', closePositionError };
 
+                    let [openOrdersError, openOrders] = await to(
+                        binance.getOpenOrders(adapterData.ticker)
+                    )
+                    if (openOrdersError) return { error: openOrdersError };
+
+                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
+
                     let [openSellDealError, openSellDeal] = await to(
                         binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', orderSize, adapterData.price)
                     )
-
+                    console.log('openSellDeal');
+                    console.log(openSellDeal);
+                    console.log('openSellDeal');
                     if (openSellDealError) return { error: 'Open SELL deal error', openSellDealError };
 
                     return openSellDeal;
@@ -163,13 +176,27 @@ class RwiController {
             case 'SELL':
                 {
                     let [closePositionError, closePosition] = await to(
-                        binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', currentPosition.positionAmt, adapterData.price)
+                        binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', Math.abs(currentPosition.positionAmt), adapterData.price)
                     )
+                    
+                    console.log('closePosition');
+                    console.log(closePosition);
+                    console.log('closePosition');
                     if (closePositionError) return { error: 'Close SELL position error', closePositionError };
+
+                    let [openOrdersError, openOrders] = await to(
+                        binance.getOpenOrders(adapterData.ticker)
+                    )
+                    if (openOrdersError) return { error: openOrdersError };
+                    
+                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
 
                     let [openBuyDealError, openBuyDeal] = await to(
                         binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
                     )
+                    console.log('openBuyDeal');
+                    console.log(openBuyDeal);
+                    console.log('openBuyDeal');
                     if (openBuyDealError) return { error: ' Open BUY deal error', openBuyDealError };
 
                     return openBuyDeal;

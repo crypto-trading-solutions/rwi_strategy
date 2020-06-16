@@ -59,10 +59,10 @@ class BinanceRequestProvider {
      * APIURL: DELETE /api/v3/order
      * @return {Promise<HttpRequest>}
      */
-    async cancelOrder(symbol){
+    async cancelAllOrders(symbol){
         const query = await queryBuilder({symbol});
         const signaturedQuery = await signRequest(query, this.secretKey);
-        return fetch(`${this.apiUrl}/v3/order` + signaturedQuery, 'DELETE', this.apiKey);
+        return fetch(`${this.fapiUrl}/v1/allOpenOrders` + signaturedQuery, 'DELETE', this.apiKey);
     }
 
 

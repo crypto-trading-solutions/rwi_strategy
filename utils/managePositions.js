@@ -16,7 +16,7 @@ module.exports = async (symbol) => {
         return obj.symbol === symbol
     })
 
-    if (parseInt(symbolPosition.positionAmt) === 0) return { code: 'nop' }
+    if (parseFloat(symbolPosition.positionAmt) === 0) return { code: 'nop' }
 
     if(parseFloat(symbolPosition.positionAmt) > 0){
         symbolPosition.positionSide = 'BUY';
