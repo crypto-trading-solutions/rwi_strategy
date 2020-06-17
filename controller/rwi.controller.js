@@ -159,13 +159,6 @@ class RwiController {
                     )
                     if (closePositionError) return { error: 'Close BUY position error', closePositionError };
 
-                    let [openOrdersError, openOrders] = await to(
-                        binance.getOpenOrders(adapterData.ticker)
-                    )
-                    if (openOrdersError) return { error: openOrdersError };
-
-                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
-
                     let [openSellDealError, openSellDeal] = await to(
                         binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', orderSize, adapterData.price)
                     )
@@ -186,13 +179,6 @@ class RwiController {
                     console.log(closePosition);
                     console.log('closePosition');
                     if (closePositionError) return { error: 'Close SELL position error', closePositionError };
-
-                    let [openOrdersError, openOrders] = await to(
-                        binance.getOpenOrders(adapterData.ticker)
-                    )
-                    if (openOrdersError) return { error: openOrdersError };
-                    
-                    if(openOrders.length > 0) return { error: 'Order for close position isnt fullfiled', orders: openOrders};
 
                     let [openBuyDealError, openBuyDeal] = await to(
                         binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
