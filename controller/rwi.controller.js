@@ -20,12 +20,13 @@ class RwiController {
 
         const manageDealResult = await manageDeals(adapterData.ticker, adapterData.price, adapterData.action);
 
-        if (manageDealResult.error) {
-            return res.status(400).send(manageDealResult);
-        }
         console.log('manageDealResult');
         console.log(manageDealResult);
         console.log('manageDealResult');
+        if (manageDealResult.error) {
+            return res.status(400).send(manageDealResult);
+        }
+
 
         // Get all futures wallet balance
         // const [futuresBalanceError, futuresBalance] = await to(
