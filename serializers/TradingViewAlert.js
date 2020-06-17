@@ -21,7 +21,7 @@ class TradingViewAlert {
 
     constructor(ticker, price, time, strategy, action){
         this.validateTicker(ticker);
-        this.validatePrice(parseInt(price));
+        this.validatePrice(parseFloat(price));
         this.validateTime(time);
         this.validateStrategy(strategy);
         this.validateAction(action);

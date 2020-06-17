@@ -9,9 +9,11 @@ const managePositions = require('../utils/managePositions');
 
 class RwiController {
     async makeDeal(req, res, next) {
+        console.log(req.body);
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
         let deposit = tradingConfig.orderSize;
         let symbolQuantityPrecision = '';
+        console.log('adapterData.ticker');
 
         await binance.futuresLeverage(adapterData.ticker, 1)
         await binance.futuresMarginType(adapterData.ticker, 'ISOLATED')
