@@ -1,23 +1,25 @@
 require('dotenv').config();
 
 const http = require('http');
+const router = require('./routes/api');
 
-const Binance = require('node-binance-api');
-const binance = new Binance().options({
-  APIKEY: process.env.APIKEY,
-  APISECRET:  process.env.APISECRET
-});
+// const Binance = require('node-binance-api');
+// const binance = new Binance().options({
+//   APIKEY: process.env.APIKEY,
+//   APISECRET:  process.env.APISECRET
+// });
 
 //check connection to binance 
-binance.futuresBalance().then( (data) => {
-  console.info(data);
-});
+// binance.futuresBalance().then( (data) => {
+//   console.info(data);
+// });
 
 const port = process.env.PORT || 4040;
 const ipAddress = process.env.IP_ADDRESS;
 
 const handleHttpServerErrors = require('./utils/handleHttpServerErrors');
-const TradingViewAlert = require("./serializers/TradingViewAlert");
+// const TradingViewAlert = require("./serializers/TradingViewAlert");
+const BinanceRequestProvider = require('./serializers/BinanceRequestProvider');
 
 var express = require('express'),
     app     = express();
@@ -37,27 +39,10 @@ server.listen(port, () => {
 
 server.on('error', handleHttpServerErrors);
 
-
-app.post('/alert_data', function (req, res) {
-    const {Ticker, Price, Time, Strategy, Action} = req.body;
-
-    const alert = new TradingViewAlert(Ticker, Price, Time, Strategy, Action);
-
-    console.log(alert);
-    
-    res.send(alert);
-});
+app.use('/', router);
 
 app.use((req, res, next) => {
     const err = new Error('Not Found');
     err.status = 404;
     next(err);
-});
-
-app.use((error, req, res, next) => {
-    res.status(error.status || 500);
-    res.json({
-        error: error.message,
-        description: (app.get('env') === 'development') ? error : {}
-    });
 });

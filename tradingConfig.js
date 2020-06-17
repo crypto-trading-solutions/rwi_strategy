@@ -1,4 +1,4 @@
-{
-    "orderSize":"5",
+module.exports = {
+    "orderSize": 1,
     "symbols": [ "ETHUSDT","BTCUSDT"]
 }
