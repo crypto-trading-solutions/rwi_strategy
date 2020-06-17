@@ -24,11 +24,11 @@ module.exports = async function (symbol, price, action) {
 }
 
 const checkDealErrors = (openOrder, newAction, newSymbol) => {
-    if (newAction === 'BUY') {
+    if (newAction === 'sell') {
         if (openOrder.symbol === newSymbol && openOrder.side === newAction) {
             return { error: 'This BUY deal is already open', order: openOrder };
         }
-    } else if (newAction === 'SELL') {
+    } else if (newAction === 'sell') {
         if (openOrder.symbol === newSymbol && openOrder.side === newAction) {
             return { error: 'This SELL deal is already open', order: openOrder };
         }
@@ -39,13 +39,13 @@ const checkDealErrors = (openOrder, newAction, newSymbol) => {
 
 const manageDeals = (openOrder, newAction, newSymbol) => {
     switch(newAction) {
-        case 'BUY':
-            if(openOrder.symbol === newSymbol && openOrder.side === 'SELL'){
+        case 'buy':
+            if(openOrder.symbol === newSymbol && openOrder.side === 'sell'){
                 return {code: 'closeDeal', order: openOrder};
             }
             break;
-        case 'SELL':
-            if(openOrder.symbol === newSymbol && openOrder.side === 'BUY'){
+        case 'sell':
+            if(openOrder.symbol === newSymbol && openOrder.side === 'buy'){
                 return {code: 'closeDeal', order: openOrder};
             }
             break;

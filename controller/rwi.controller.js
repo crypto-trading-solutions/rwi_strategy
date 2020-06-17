@@ -1,5 +1,6 @@
 const to = require('await-to-js').default;
 const Binance = require("../serializers/BinanceRequestProvider");
+const validateData = require("../serializers/TradingViewAlert");
 const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const manageDeals = require('../utils/manageDeals');
@@ -8,7 +9,7 @@ const managePositions = require('../utils/managePositions');
 
 class RwiController {
     async makeDeal(req, res, next) {
-        const adapterData = req.body;
+        const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
         let deposit = tradingConfig.orderSize;
         let symbolQuantityPrecision = '';
 
@@ -69,7 +70,7 @@ class RwiController {
                     console.log('managePositionsResult.position');
                     console.log(managePositionsResult.position);
                     console.log('managePositionsResult.position');
-                    if (adapterData.action === 'SELL') {
+                    if (adapterData.action === 'sell') {
                         const [openSellDealError, openSellDeal] = await to(
                             binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
                         )
@@ -108,7 +109,7 @@ class RwiController {
                     if (cancelDealError) return res.status(400).send(cancelDealError);
 
                     if (!managePositionsResult.position) {
-                        if (adapterData.action === 'SELL') {
+                        if (adapterData.action === 'sell') {
                             const [openSellDealError, openSellDeal] = await to(
                                 binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
                             )
@@ -149,7 +150,7 @@ class RwiController {
         }
 
         switch (currentPosition.positionSide) {
-            case 'BUY':
+            case 'buy':
                 {
                     let [closePositionError, closePosition] = await to(
                         binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', currentPosition.positionAmt, adapterData.price)
@@ -173,7 +174,7 @@ class RwiController {
 
                     return openSellDeal;
                 }
-            case 'SELL':
+            case 'sell':
                 {
                     let [closePositionError, closePosition] = await to(
                         binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', Math.abs(currentPosition.positionAmt), adapterData.price)
