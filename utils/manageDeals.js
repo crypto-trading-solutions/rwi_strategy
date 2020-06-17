@@ -13,6 +13,9 @@ module.exports = async function (symbol, price, action) {
 
     for (let i = 0; i < openOrders.length; i++) {
         const dealErrors = await checkDealErrors(openOrders[i], action, symbol);
+        console.log('dealErrors');
+        console.log(dealErrors);
+        console.log('dealErrors');
         if (dealErrors.error) return dealErrors;
 
         const manageDealsResult = await manageDeals(openOrders[i], action, symbol);
