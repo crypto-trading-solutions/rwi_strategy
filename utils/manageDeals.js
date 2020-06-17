@@ -7,21 +7,22 @@ module.exports = async function (symbol, price, action) {
         binance.getOpenOrders(symbol)
     )
     if (openOrdersError) return { error: openOrdersError };
-    console.log('openOrders');
-    console.log(openOrders);
-    console.log('openOrders');
-
-    for (let i = 0; i < openOrders.length; i++) {
-        const dealErrors = await checkDealErrors(openOrders[i], action, symbol);
-        console.log('dealErrors');
-        console.log(dealErrors);
-        console.log('dealErrors');
-        if (dealErrors.error) return dealErrors;
-
-        const manageDealsResult = await manageDeals(openOrders[i], action, symbol);
-
-        return manageDealsResult;
+ 
+    if(openOrders.length > 0){
+        return {error: 'We have opened orders!', orders: openOrders};
     }
+
+    // for (let i = 0; i < openOrders.length; i++) {
+    //     const dealErrors = await checkDealErrors(openOrders[i], action, symbol);
+    //     console.log('dealErrors');
+    //     console.log(dealErrors);
+    //     console.log('dealErrors');
+    //     if (dealErrors.error) return dealErrors;
+
+    //     const manageDealsResult = await manageDeals(openOrders[i], action, symbol);
+
+    //     return manageDealsResult;
+    // }
 
     return { code: 'open' };
 }
