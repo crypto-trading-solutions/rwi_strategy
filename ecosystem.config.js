@@ -5,11 +5,11 @@ module.exports = {
         script: "./app.js",
         exec_mode: "cluster",
         watch: true,
-        error_file: 'rwiStrategyErr.log',
-        out_file: 'rwiStrategyOut.log',
-        log_file: 'rwiStrategy.log',
+        error_file: 'logs/rwiStrategyErr.log',
+        out_file: 'logs/rwiStrategyOut.log',
+        log_file: 'logs/rwiStrategy.log',
         time: true,
-        ignore_watch: ["node_modules"],
+        ignore_watch: ["node_modules","logs"],
         env: {
           NODE_ENV: "development"
         },
