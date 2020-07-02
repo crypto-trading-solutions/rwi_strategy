@@ -11,7 +11,8 @@ module.exports = {
         time: true,
         ignore_watch: ["node_modules","logs"],
         env: {
-          NODE_ENV: "development"
+          NODE_ENV: "development",
+          PORT: 91
         },
         env_production: {
           PORT: 81,
