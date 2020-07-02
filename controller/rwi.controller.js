@@ -10,12 +10,13 @@ const toPrecision = require('../utils/precision');
 
 class RwiController {
     async makeDeal(req, res, next) {
+        console.log('req.body');
         console.log(req.body);
+        console.log('req.body');
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
         let deposit = tradingConfig.orderSize;
         let symbolQuantityPrecision = '';
         let symbolPricePrecision = '';
-        console.log('adapterData.ticker');
 
         await binance.futuresLeverage(adapterData.ticker, 1)
         await binance.futuresMarginType(adapterData.ticker, 'ISOLATED')
@@ -64,93 +65,91 @@ class RwiController {
         // Do right presicion
         adapterData.price = await toPrecision(adapterData.price, symbolPricePrecision);
 
-        console.log(deposit);
-        console.log('adapterData.price');
-        console.log(adapterData.price);
-        console.log('adapterData.price');
-        console.log(symbolQuantityPrecision);
-        console.log(orderSize);
-
-    //     const managePositionsResult = await managePositions(adapterData.ticker);
-    //     if (managePositionsResult.error) return res.status(400).send(managePositionsResult);
-
-    //     switch (manageDealResult.code) {
-    //         case 'open':
-    //             // Check opened position , if we havent got position we open order
-    //             if (!managePositionsResult.position) {
-    //                 console.log('managePositionsResult.position');
-    //                 console.log(managePositionsResult.position);
-    //                 console.log('managePositionsResult.position');
-    //                 if (adapterData.action === 'sell') {
-    //                     const [openSellDealError, openSellDeal] = await to(
-    //                         binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
-    //                     )
-
-    //                     if (openSellDealError) return res.status(400).send(openSellDealError);
-
-    //                     return res.status(200).send(openSellDeal);
-    //                 }
-
-    //                 {
-    //                     let [openBuyDealError, openBuyDeal] = await to(
-    //                         binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT',  orderSize, adapterData.price)
-    //                     )
-    //                     console.log(openBuyDeal);
-    //                     if (openBuyDealError) return res.status(400).send(openBuyDealError);
-
-    //                     return res.status(200).send(openBuyDeal);
-    //                 }
-    //             }
-    //             // If we have opened position , we need at first close current position and open new
-    //             // To close a position with Binance you just need to place an opposite order of the same size as your initial order, 
-    //             // when you "entered that position". 
+        console.log('adapterData');
+        console.log(adapterData);
+        console.log('adapterData');
 
 
-    //             let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
+        const managePositionsResult = await managePositions(adapterData.ticker);
+        if (managePositionsResult.error) return res.status(400).send(managePositionsResult);
 
-    //             if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
+        switch (manageDealResult.code) {
+            case 'open':
+                // Check opened position , if we havent got position we open order
+                if (!managePositionsResult.position) {
+                    console.log('managePositionsResult.position');
+                    console.log(managePositionsResult.position);
+                    console.log('managePositionsResult.position');
+                    if (adapterData.action === 'sell') {
+                        const [openSellDealError, openSellDeal] = await to(
+                            binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', orderSize, adapterData.price)
+                        )
 
-    //             return res.status(200).send(managePositionCodesResult);
-    //         case 'closeDeal':
-    //             {
+                        if (openSellDealError) return res.status(400).send(openSellDealError);
 
-    //                 let [cancelDealError, cancelDeal] = await to(
-    //                     binance.cancelAllOrders(manageDealResult.order.symbol)
-    //                 )
-    //                 if (cancelDealError) return res.status(400).send(cancelDealError);
+                        return res.status(200).send(openSellDeal);
+                    }
 
-    //                 if (!managePositionsResult.position) {
-    //                     if (adapterData.action === 'sell') {
-    //                         const [openSellDealError, openSellDeal] = await to(
-    //                             binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT',  orderSize, adapterData.price)
-    //                         )
-    //                         if (openSellDealError) return res.status(400).send(openSellDealError);
+                    {
+                        let [openBuyDealError, openBuyDeal] = await to(
+                            binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
+                        )
+                        console.log(openBuyDeal);
+                        if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
-    //                         return res.status(200).send(openSellDeal);
-    //                     }
+                        return res.status(200).send(openBuyDeal);
+                    }
+                }
+                // If we have opened position , we need at first close current position and open new
+                // To close a position with Binance you just need to place an opposite order of the same size as your initial order, 
+                // when you "entered that position". 
 
-    //                     {
-    //                         let [openBuyDealError, openBuyDeal] = await to(
-    //                             binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT',  orderSize, adapterData.price)
-    //                         )
-    //                         if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
-    //                         return res.status(200).send(openBuyDeal);
-    //                     }
-    //                 }
+                let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
 
-    //                 let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
+                if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
 
-    //                 if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
+                return res.status(200).send(managePositionCodesResult);
+            case 'closeDeal':
+                {
 
-    //                 return res.status(200).send(managePositionCodesResult);
-    //             }
+                    let [cancelDealError, cancelDeal] = await to(
+                        binance.cancelAllOrders(manageDealResult.order.symbol)
+                    )
+                    if (cancelDealError) return res.status(400).send(cancelDealError);
 
-    //     }
+                    if (!managePositionsResult.position) {
+                        if (adapterData.action === 'sell') {
+                            const [openSellDealError, openSellDeal] = await to(
+                                binance.createOrder(adapterData.ticker, 'SELL', 'LIMIT', orderSize, adapterData.price)
+                            )
+                            if (openSellDealError) return res.status(400).send(openSellDealError);
 
-    //   res.status(400).send({ error: 'Error with app' });
+                            return res.status(200).send(openSellDeal);
+                        }
 
-    res.status(200).send(futuresExchangeInfo);
+                        {
+                            let [openBuyDealError, openBuyDeal] = await to(
+                                binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
+                            )
+                            if (openBuyDealError) return res.status(400).send(openBuyDealError);
+
+                            return res.status(200).send(openBuyDeal);
+                        }
+                    }
+
+                    let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
+
+                    if (managePositionCodesResult.error) return res.status(400).send(managePositionCodesResult);
+
+                    return res.status(200).send(managePositionCodesResult);
+                }
+
+        }
+
+        res.status(400).send({ error: 'Error with app' });
+
+        // res.status(200).send(futuresExchangeInfo);
     }
 
 
@@ -183,7 +182,7 @@ class RwiController {
                     let [closePositionError, closePosition] = await to(
                         binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', Math.abs(currentPosition.positionAmt), adapterData.price)
                     )
-                    
+
                     console.log('closePosition');
                     console.log(closePosition);
                     console.log('closePosition');
