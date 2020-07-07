@@ -7,28 +7,32 @@ module.exports = async function (symbol, price, action) {
         binance.getOpenOrders(symbol)
     )
     if (openOrdersError) return { error: openOrdersError };
-    console.log('openOrders');
-    console.log(openOrders);
-    console.log('openOrders');
-
-    for (let i = 0; i < openOrders.length; i++) {
-        const dealErrors = await checkDealErrors(openOrders[i], action, symbol);
-        if (dealErrors.error) return dealErrors;
-
-        const manageDealsResult = await manageDeals(openOrders[i], action, symbol);
-
-        return manageDealsResult;
+ 
+    if(openOrders.length > 0){
+        return {error: 'We have opened orders!', orders: openOrders};
     }
+
+    // for (let i = 0; i < openOrders.length; i++) {
+    //     const dealErrors = await checkDealErrors(openOrders[i], action, symbol);
+    //     console.log('dealErrors');
+    //     console.log(dealErrors);
+    //     console.log('dealErrors');
+    //     if (dealErrors.error) return dealErrors;
+
+    //     const manageDealsResult = await manageDeals(openOrders[i], action, symbol);
+
+    //     return manageDealsResult;
+    // }
 
     return { code: 'open' };
 }
 
 const checkDealErrors = (openOrder, newAction, newSymbol) => {
-    if (newAction === 'BUY') {
+    if (newAction === 'sell') {
         if (openOrder.symbol === newSymbol && openOrder.side === newAction) {
             return { error: 'This BUY deal is already open', order: openOrder };
         }
-    } else if (newAction === 'SELL') {
+    } else if (newAction === 'sell') {
         if (openOrder.symbol === newSymbol && openOrder.side === newAction) {
             return { error: 'This SELL deal is already open', order: openOrder };
         }
@@ -39,13 +43,13 @@ const checkDealErrors = (openOrder, newAction, newSymbol) => {
 
 const manageDeals = (openOrder, newAction, newSymbol) => {
     switch(newAction) {
-        case 'BUY':
-            if(openOrder.symbol === newSymbol && openOrder.side === 'SELL'){
+        case 'buy':
+            if(openOrder.symbol === newSymbol && openOrder.side === 'sell'){
                 return {code: 'closeDeal', order: openOrder};
             }
             break;
-        case 'SELL':
-            if(openOrder.symbol === newSymbol && openOrder.side === 'BUY'){
+        case 'sell':
+            if(openOrder.symbol === newSymbol && openOrder.side === 'buy'){
                 return {code: 'closeDeal', order: openOrder};
             }
             break;

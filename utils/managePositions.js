@@ -19,15 +19,15 @@ module.exports = async (symbol) => {
     if (parseFloat(symbolPosition.positionAmt) === 0) return { code: 'nop' }
 
     if(parseFloat(symbolPosition.positionAmt) > 0){
-        symbolPosition.positionSide = 'BUY';
+        symbolPosition.positionSide = 'buy';
     } else if(parseFloat(symbolPosition.positionAmt) < 0){
-        symbolPosition.positionSide = 'SELL';
+        symbolPosition.positionSide = 'sell';
     }
 
     switch (symbolPosition.positionSide) {
-        case 'BUY':
+        case 'buy':
             return { code: 'olp', position: symbolPosition }
-        case 'SELL':
+        case 'sell':
             return { code: 'osp', position: symbolPosition }
     }
 
