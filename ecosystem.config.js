@@ -12,7 +12,7 @@ module.exports = {
         ignore_watch: ["node_modules","logs"],
         env: {
           NODE_ENV: "development",
-          PORT: 91
+          PORT: process.env.PORT
         },
         env_production: {
           PORT: 81,

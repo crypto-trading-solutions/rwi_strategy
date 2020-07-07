@@ -14,6 +14,7 @@ class RwiController {
         console.log(req.body);
         console.log('req.body');
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
+
         let deposit = tradingConfig.orderSize;
         let symbolQuantityPrecision = '';
         let symbolPricePrecision = '';
@@ -69,7 +70,6 @@ class RwiController {
         console.log(adapterData);
         console.log('adapterData');
 
-
         const managePositionsResult = await managePositions(adapterData.ticker);
         if (managePositionsResult.error) return res.status(400).send(managePositionsResult);
 
@@ -87,6 +87,10 @@ class RwiController {
 
                         if (openSellDealError) return res.status(400).send(openSellDealError);
 
+                        console.log('openSellDeal');
+                        console.log(openSellDeal);
+                        console.log('openSellDeal');
+
                         return res.status(200).send(openSellDeal);
                     }
 
@@ -94,7 +98,9 @@ class RwiController {
                         let [openBuyDealError, openBuyDeal] = await to(
                             binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
                         )
+                        console.log('openBuyDeal');
                         console.log(openBuyDeal);
+                         console.log('openBuyDeal');
                         if (openBuyDealError) return res.status(400).send(openBuyDealError);
 
                         return res.status(200).send(openBuyDeal);
@@ -103,7 +109,6 @@ class RwiController {
                 // If we have opened position , we need at first close current position and open new
                 // To close a position with Binance you just need to place an opposite order of the same size as your initial order, 
                 // when you "entered that position". 
-
 
                 let managePositionCodesResult = await this.managePositionCodes(managePositionsResult.position, adapterData, orderSize);
 
@@ -125,6 +130,10 @@ class RwiController {
                             )
                             if (openSellDealError) return res.status(400).send(openSellDealError);
 
+                            console.log('openSellDeal');
+                            console.log(openSellDeal);
+                            console.log('openSellDeal');
+
                             return res.status(200).send(openSellDeal);
                         }
 
@@ -133,6 +142,10 @@ class RwiController {
                                 binance.createOrder(adapterData.ticker, 'BUY', 'LIMIT', orderSize, adapterData.price)
                             )
                             if (openBuyDealError) return res.status(400).send(openBuyDealError);
+
+                            console.log('openBuyDeal');
+                            console.log(openBuyDeal);
+                            console.log('openBuyDeal');
 
                             return res.status(200).send(openBuyDeal);
                         }
@@ -149,7 +162,7 @@ class RwiController {
 
         res.status(400).send({ error: 'Error with app' });
 
-        // res.status(200).send(futuresExchangeInfo);
+    //    res.status(200).send(futuresExchangeInfo);
     }
 
 
