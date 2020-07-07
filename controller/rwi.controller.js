@@ -15,7 +15,7 @@ class RwiController {
         console.log('req.body');
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
 
-        let deposit = tradingConfig.orderSize;
+        let deposit = process.env.ORDER_SIZE;
         let symbolQuantityPrecision = '';
         let symbolPricePrecision = '';
 
