@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
       {
-        name: "rwi_strategy",
+        name: "rwi_strategy_" + process.env.NODE_ENV,
         script: "./app.js",
         exec_mode: "cluster",
         watch: true,
