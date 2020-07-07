@@ -7,9 +7,9 @@ module.exports = {
         script: "./app.js",
         exec_mode: "cluster",
         watch: true,
-        error_file: 'logs/rwiStrategyErr.log',
-        out_file: 'logs/rwiStrategyOut.log',
-        log_file: 'logs/rwiStrategy.log',
+        error_file: `logs/rwiStrategy${process.env.NODE_ENV}Err.log`,
+        out_file: `logs/rwiStrategy${process.env.NODE_ENV}Out.log`,
+        log_file: `logs/rwiStrategy${process.env.NODE_ENV}.log`,
         time: true,
         ignore_watch: ["node_modules","logs"],
         env: {
