@@ -13,6 +13,8 @@ class MakeDealHelper {
 
         this.orderSize = 0;
         this.price = 0;
+
+        this.currentPosition = null;
     }
 
     /**
@@ -28,11 +30,39 @@ class MakeDealHelper {
 
         await this.getExchangeInfo();
         await this.getSymbolPrecisions();
-        
+
         await this.countOrderSize();
 
         // Bring the price to the correct precision, because Trading View sometimes send price like 229.400000002
         await this.toPrecision();
+
+        // Check current position
+        await this.checkCurrentPosition();
+    }
+
+    /**
+    * Check current position for given symbol
+    * @param {string} ticker
+    */
+    async checkCurrentPosition() {
+        const [futurePositionsError, futurePositions] = await to(
+            binance.futuresPositionRisk()
+        )
+        if (futurePositionsError) return { error: 'Error with getting positions', futurePositionsError };
+    
+        const symbolPosition = futurePositions.find(obj => {
+            return obj.symbol === this.adapterData.ticker;
+        })
+    
+        if (parseFloat(symbolPosition.positionAmt) === 0) return false;
+    
+        if(parseFloat(symbolPosition.positionAmt) > 0){
+            this.currentPosition = 'long';
+        } else if(parseFloat(symbolPosition.positionAmt) < 0){
+            this.currentPosition = 'short'
+        }
+
+        return null;
     }
 
     /**
@@ -45,7 +75,7 @@ class MakeDealHelper {
         if (dotIndex == -1) this.price = this.adapterData.price;
 
         // Plus 1, because JS start count symbols from 0
-        this.price = str.slice(0, dotIndex + precision + 1);
+        this.price = str.slice(0, dotIndex + this.symbolQuantityPrecision + 1);
     }
 
     /**
