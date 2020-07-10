@@ -13,9 +13,12 @@ class RwiController {
         console.log('req.body');
         console.log(req.body);
         console.log('req.body');
+
+        if(!req.headers.host.includes('localhost')) return res.status(400).send({error: 'Bad host'});
+
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
 
-        let deposit = tradingConfig.orderSize;
+        let deposit = process.env.ORDER_SIZE;
         let symbolQuantityPrecision = '';
         let symbolPricePrecision = '';
 
@@ -162,7 +165,7 @@ class RwiController {
 
         res.status(400).send({ error: 'Error with app' });
 
-    //    res.status(200).send(futuresExchangeInfo);
+      //  res.status(200).send({success: 'Yes'});
     }
 
 
