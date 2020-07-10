@@ -10,7 +10,7 @@
 class TradingViewAlert {
 
     availableStrategy= 'rwi';
-    availableActions = ['buy', 'sell'];
+    availableActions = ['buy', 'sell','close_buy','close_sell'];
     errors = new Map([
         ['ticker', 'Ticker is not provided or has invalid value'],
         ['price', 'Price is not provided or has invalid value'],
