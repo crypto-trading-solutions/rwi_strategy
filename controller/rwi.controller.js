@@ -9,6 +9,7 @@ const managePositions = require('../utils/managePositions');
 const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
+const accounts = require('../accounts');
 
 class RwiController {
     async makeDeal(req, res, next) {
@@ -24,6 +25,8 @@ class RwiController {
 
         const makeDealHelper = new makeDealHelperClass(adapterData, deposit);
 
+        console.log(accounts);
+
         /**
         * Build object
         * Set future leverage 
@@ -31,7 +34,7 @@ class RwiController {
         * Get exchange info
         * Get symbol precisions
         */
-        await makeDealHelper.build();
+        await makeDealHelper.build(accounts);
 
         // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
         const manageDealResult = await makeDealHelper.checkOpenOrders();

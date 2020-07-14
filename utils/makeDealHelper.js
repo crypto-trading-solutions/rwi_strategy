@@ -1,6 +1,7 @@
 const to = require('await-to-js').default;
 const Binance = require("../serializers/BinanceRequestProvider");
 const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
+const accounts = require('../accounts');
 
 class MakeDealHelper {
 
@@ -24,8 +25,10 @@ class MakeDealHelper {
     * Set future margin type
     * Get exchange info
     * Get symbol precisions
+    * @param {array} accounts
     */
-    async build() {
+    async build(accounts) {
+        console.log(accounts);
         await binance.futuresLeverage(this.adapterData.ticker, 1)
         await binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
 
@@ -141,22 +144,24 @@ class MakeDealHelper {
     * @param {integer} decimals
     */
     async manageDeals() {
-        if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
-        if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
-            return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
+        console.log(binance);
+        // if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
+        // if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
+        //     return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
 
-        switch (this.adapterData.action) {
-            case 'long':
-                return this.openBuyDeal();
-            case 'short':
-                return this.openSellDeal();
-            case 'close_short':
-                return this.openBuyDeal();
-            case 'close_long':
-                return this.openSellDeal();
-            default:
-                return { Error: 'Something went wrong with action' }
-        }
+        // switch (this.adapterData.action) {
+        //     case 'long':
+        //         return this.openBuyDeal();
+        //     case 'short':
+        //         return this.openSellDeal();
+        //     case 'close_short':
+        //         return this.openBuyDeal();
+        //     case 'close_long':
+        //         return this.openSellDeal();
+        //     default:
+        //         return { Error: 'Something went wrong with action' }
+        // }
+        return {test: 'test'};
     }
 
     /**
