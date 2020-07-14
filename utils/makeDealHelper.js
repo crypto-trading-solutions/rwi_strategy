@@ -1,6 +1,5 @@
 const to = require('await-to-js').default;
 const Binance = require("../serializers/BinanceRequestProvider");
-const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const accounts = require('../accounts');
 
 class MakeDealHelper {
@@ -8,6 +7,7 @@ class MakeDealHelper {
     constructor(adapterData, deposit) {
         this.adapterData = adapterData;
         this.deposit = deposit;
+        this.binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 
         this.symbolQuantityPrecision = 0;
         this.symbolPricePrecision = 0;
@@ -27,10 +27,13 @@ class MakeDealHelper {
     * Get symbol precisions
     * @param {array} accounts
     */
-    async build(accounts) {
-        console.log(accounts);
-        await binance.futuresLeverage(this.adapterData.ticker, 1)
-        await binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
+    async build(account) {
+        console.log(account);
+        this.binance.apiKey = accounts[1].apiKeys.apiKey;
+        this.binance.secretKey = accounts[1].apiKeys.secretKey;
+        
+        await this.binance.futuresLeverage(this.adapterData.ticker, 1)
+        await this.binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
 
         await this.getExchangeInfo();
         await this.getSymbolPrecisions();
@@ -50,7 +53,7 @@ class MakeDealHelper {
     */
     async checkCurrentPosition() {
         const [futurePositionsError, futurePositions] = await to(
-            binance.futuresPositionRisk()
+            this.binance.futuresPositionRisk()
         )
         if (futurePositionsError) return { error: 'Error with getting positions', futurePositionsError };
 
@@ -87,7 +90,7 @@ class MakeDealHelper {
     */
     async getExchangeInfo() {
         const [futuresExchangeInfoError, futuresExchangeInfo] = await to(
-            binance.exchangeInfo()
+            this.binance.exchangeInfo()
         )
         if (futuresExchangeInfoError) return res.status(400).send(futuresExchangeInfoError);
 
@@ -115,7 +118,7 @@ class MakeDealHelper {
     */
     async checkOpenOrders() {
         const [openOrdersError, openOrders] = await to(
-            binance.getOpenOrders(this.adapterData.ticker)
+            this.binance.getOpenOrders(this.adapterData.ticker)
         )
         if (openOrdersError) return { Error: openOrdersError };
 
@@ -144,7 +147,7 @@ class MakeDealHelper {
     * @param {integer} decimals
     */
     async manageDeals() {
-        console.log(binance);
+        console.log(this.binance);
         // if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
         // if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
         //     return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
@@ -171,7 +174,7 @@ class MakeDealHelper {
     */
     async openSellDeal() {
         const [openSellDealError, openSellDeal] = await to(
-            binance.createOrder(this.adapterData.ticker, 'SELL', 'LIMIT', this.orderSize, this.price)
+            this.binance.createOrder(this.adapterData.ticker, 'SELL', 'LIMIT', this.orderSize, this.price)
         )
         if (openSellDealError || openSellDeal.code) return { Error: 'Error with open sell deal for short position', openSellDeal, openBuyDealError };
 
@@ -185,7 +188,7 @@ class MakeDealHelper {
     */
     async openBuyDeal() {
         const [openBuyDealError, openBuyDeal] = await to(
-            binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
+            this.binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
         )
         if (openBuyDealError || openBuyDeal.code) return { Error: 'Error with open buy deal for long position', openBuyDeal, openBuyDealError };
 

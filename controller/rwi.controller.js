@@ -25,47 +25,52 @@ class RwiController {
 
         const makeDealHelper = new makeDealHelperClass(adapterData, deposit);
 
-        console.log(accounts);
+        // Array for saving logs for all accounts
+        const dealsResult = [];
 
-        /**
-        * Build object
-        * Set future leverage 
-        * Set future margin type
-        * Get exchange info
-        * Get symbol precisions
-        */
-        await makeDealHelper.build(accounts);
+        for (let i = 0; i < accounts.length; i++) {
+            /**
+            * Build object
+            * Set future leverage 
+            * Set future margin type
+            * Get exchange info
+            * Get symbol precisions
+            */
+            await makeDealHelper.build(accounts[i]);
 
-        // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
-        const manageDealResult = await makeDealHelper.checkOpenOrders();
+            // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
+            const manageDealResult = await makeDealHelper.checkOpenOrders();
 
-        if (manageDealResult.Error) {
-            return res.status(400).send(manageDealResult);
+            if (manageDealResult.Error) {
+                return res.status(400).send(manageDealResult);
+            }
+
+            console.log('manageDealResult');
+            console.log(manageDealResult);
+            console.log('manageDealResult');
+
+            console.log('makeDealHelper');
+            console.log(makeDealHelper);
+            console.log('makeDealHelper');
+
+            // This function check given action and open appropriate deal
+            // Action       |  OpenedDeal
+            // LONG         |  BUY
+            // CLOSE_LONG   |  SELL
+            // SHORT        |  SELL
+            // CLOSE_SHORT  |  BUY
+            const makeDealResult = await makeDealHelper.manageDeals();
+
+            console.log('makeDealResult');
+            console.log(makeDealResult);
+            console.log('makeDealResult');
+
+            if (makeDealResult.Error) return res.status(400).send(makeDealResult);
+
+            dealsResult.push(makeDealResult);
         }
 
-        console.log('manageDealResult');
-        console.log(manageDealResult);
-        console.log('manageDealResult');
-
-        console.log('makeDealHelper');
-        console.log(makeDealHelper);
-        console.log('makeDealHelper');
-
-        // This function check given action and open appropriate deal
-        // Action       |  OpenedDeal
-        // LONG         |  BUY
-        // CLOSE_LONG   |  SELL
-        // SHORT        |  SELL
-        // CLOSE_SHORT  |  BUY
-        const makeDealResult = await makeDealHelper.manageDeals();
-        
-        console.log('makeDealResult');
-        console.log(makeDealResult);
-        console.log('makeDealResult');
-        
-        if(makeDealResult.Error) return res.status(400).send(makeDealResult);
-
-        return res.status(200).send(makeDealResult);
+        return res.status(200).send(dealsResult);
     }
 }
 
