@@ -145,6 +145,8 @@ class MakeDealHelper {
         if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
             return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
 
+        if((this.adapterData.action === 'close_short' || this.adapterData.action === 'close_long') && !this.currentPosition) return { Error: 'You has not got opened position, so you can not close it' };
+
         switch (this.adapterData.action) {
             case 'long':
                 return this.openBuyDeal();
