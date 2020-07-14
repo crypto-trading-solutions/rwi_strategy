@@ -36,7 +36,7 @@ class RwiController {
         // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
         const manageDealResult = await makeDealHelper.checkOpenOrders();
 
-        if (manageDealResult.error) {
+        if (manageDealResult.Error) {
             return res.status(400).send(manageDealResult);
         }
 

@@ -32,10 +32,10 @@ class MakeDealHelper {
         await this.getExchangeInfo();
         await this.getSymbolPrecisions();
 
-        await this.countOrderSize();
-
         // Bring the price to the correct precision, because Trading View sometimes send price like 229.400000002
         await this.toPrecision();
+
+        await this.countOrderSize();
 
         // Check current position
         await this.checkCurrentPosition();
@@ -50,16 +50,16 @@ class MakeDealHelper {
             binance.futuresPositionRisk()
         )
         if (futurePositionsError) return { error: 'Error with getting positions', futurePositionsError };
-    
+
         const symbolPosition = futurePositions.find(obj => {
             return obj.symbol === this.adapterData.ticker;
         })
-    
+
         if (parseFloat(symbolPosition.positionAmt) === 0) return false;
-    
-        if(parseFloat(symbolPosition.positionAmt) > 0){
+
+        if (parseFloat(symbolPosition.positionAmt) > 0) {
             this.currentPosition = 'long';
-        } else if(parseFloat(symbolPosition.positionAmt) < 0){
+        } else if (parseFloat(symbolPosition.positionAmt) < 0) {
             this.currentPosition = 'short'
         }
 
@@ -114,10 +114,10 @@ class MakeDealHelper {
         const [openOrdersError, openOrders] = await to(
             binance.getOpenOrders(this.adapterData.ticker)
         )
-        if (openOrdersError) return { error: openOrdersError };
+        if (openOrdersError) return { Error: openOrdersError };
 
         if (openOrders.length > 0) {
-            return { error: 'We have opened orders!', orders: openOrders };
+            return { Error: 'We have opened orders!', orders: openOrders };
         }
 
         return false;
@@ -130,7 +130,7 @@ class MakeDealHelper {
     */
     async countOrderSize() {
         const decimals = this.symbolQuantityPrecision || 0;
-        const number = this.deposit / this.symbolQuantityPrecision;
+        const number = this.deposit / this.price;
 
         return this.orderSize = (Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals));
     }
@@ -141,9 +141,11 @@ class MakeDealHelper {
     * @param {integer} decimals
     */
     async manageDeals() {
-        if(this.currentPosition === this.adapterData.action) return {Error: 'Position in current side also opened'};
+        if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
+        if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
+            return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
 
-        switch(this.adapterData.action){
+        switch (this.adapterData.action) {
             case 'long':
                 return this.openBuyDeal();
             case 'short':
@@ -153,7 +155,7 @@ class MakeDealHelper {
             case 'close_long':
                 return this.openSellDeal();
             default:
-                return {Error: 'Something went wrong with action'}
+                return { Error: 'Something went wrong with action' }
         }
     }
 
@@ -162,13 +164,13 @@ class MakeDealHelper {
     * @param {integer} number
     * @param {integer} decimals
     */
-    async openSellDeal(){
+    async openSellDeal() {
         const [openSellDealError, openSellDeal] = await to(
             binance.createOrder(this.adapterData.ticker, 'SELL', 'LIMIT', this.orderSize, this.price)
         )
-        if(openSellDealError) return {Error: 'Error with open sell deal for short position', openSellDealError};    
+        if (openSellDealError || openSellDeal.code) return { Error: 'Error with open sell deal for short position', openSellDeal, openBuyDealError };
 
-        return {Success: 'Sell deal for short position successfully opened', openSellDeal};
+        return { Success: 'Sell deal for short position successfully opened', openSellDeal };
     }
 
     /**
@@ -176,14 +178,14 @@ class MakeDealHelper {
     * @param {integer} number
     * @param {integer} decimals
     */
-   async openBuyDeal(){
-    const [openBuyDealError, openBuyDeal] = await to(
-        binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
-    )
-    if(openBuyDealError) return {Error: 'Error with open buy deal for long position', openBuyDealError};    
+    async openBuyDeal() {
+        const [openBuyDealError, openBuyDeal] = await to(
+            binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
+        )
+        if (openBuyDealError || openBuyDeal.code) return { Error: 'Error with open buy deal for long position', openBuyDeal, openBuyDealError };
 
-    return {Success: 'Buy deal for long position successfully opened', openBuyDeal};
-}
+        return { Success: 'Buy deal for long position successfully opened', openBuyDeal };
+    }
 
 }
 
