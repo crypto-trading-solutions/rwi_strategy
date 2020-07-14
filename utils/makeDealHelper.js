@@ -17,6 +17,7 @@ class MakeDealHelper {
         this.currentPosition = null;
     }
 
+
     /**
     * Build object
     * Set future leverage 
@@ -75,7 +76,7 @@ class MakeDealHelper {
         if (dotIndex == -1) this.price = this.adapterData.price;
 
         // Plus 1, because JS start count symbols from 0
-        this.price = str.slice(0, dotIndex + this.symbolQuantityPrecision + 1);
+        return this.price = str.slice(0, dotIndex + this.symbolQuantityPrecision + 1);
     }
 
     /**
@@ -131,8 +132,59 @@ class MakeDealHelper {
         const decimals = this.symbolQuantityPrecision || 0;
         const number = this.deposit / this.symbolQuantityPrecision;
 
-        this.orderSize = (Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals));
+        return this.orderSize = (Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals));
     }
+
+    /**
+    * Open deal for given action
+    * @param {integer} number
+    * @param {integer} decimals
+    */
+    async manageDeals() {
+        if(this.currentPosition === this.adapterData.action) return {Error: 'Position in current side also opened'};
+
+        switch(this.adapterData.action){
+            case 'long':
+                return this.openBuyDeal();
+            case 'short':
+                return this.openSellDeal();
+            case 'close_short':
+                return this.openBuyDeal();
+            case 'close_long':
+                return this.openSellDeal();
+            default:
+                return {Error: 'Something went wrong with action'}
+        }
+    }
+
+    /**
+    * Open SELL deal
+    * @param {integer} number
+    * @param {integer} decimals
+    */
+    async openSellDeal(){
+        const [openSellDealError, openSellDeal] = await to(
+            binance.createOrder(this.adapterData.ticker, 'SELL', 'LIMIT', this.orderSize, this.price)
+        )
+        if(openSellDealError) return {Error: 'Error with open sell deal for short position', openSellDealError};    
+
+        return {Success: 'Sell deal for short position successfully opened', openSellDeal};
+    }
+
+    /**
+    * Open BUY deal
+    * @param {integer} number
+    * @param {integer} decimals
+    */
+   async openBuyDeal(){
+    const [openBuyDealError, openBuyDeal] = await to(
+        binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
+    )
+    if(openBuyDealError) return {Error: 'Error with open buy deal for long position', openBuyDealError};    
+
+    return {Success: 'Buy deal for long position successfully opened', openBuyDeal};
+}
+
 }
 
 module.exports = MakeDealHelper;
