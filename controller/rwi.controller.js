@@ -55,7 +55,11 @@ class RwiController {
         // SHORT        |  SELL
         // CLOSE_SHORT  |  BUY
         const makeDealResult = await makeDealHelper.manageDeals();
-
+        
+        console.log('makeDealResult');
+        console.log(makeDealResult);
+        console.log('makeDealResult');
+        
         if(makeDealResult.Error) return res.status(400).send(makeDealResult);
 
         return res.status(200).send(makeDealResult);
