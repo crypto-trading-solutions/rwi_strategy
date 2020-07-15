@@ -1,6 +1,5 @@
 const to = require('await-to-js').default;
 const Binance = require("../serializers/BinanceRequestProvider");
-const accounts = require('../accounts');
 
 class MakeDealHelper {
 
@@ -25,13 +24,14 @@ class MakeDealHelper {
     * Set future margin type
     * Get exchange info
     * Get symbol precisions
-    * @param {array} accounts
+    * @param {object} account
     */
     async build(account) {
-        console.log(account);
-        this.binance.apiKey = accounts[1].apiKeys.apiKey;
-        this.binance.secretKey = accounts[1].apiKeys.secretKey;
-        
+        this.binance.apiKey = account.apiKeys.apiKey;
+        this.binance.secretKey = account.apiKeys.secretKey;
+
+        console.log(this.binance);
+
         await this.binance.futuresLeverage(this.adapterData.ticker, 1)
         await this.binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
 
@@ -61,12 +61,18 @@ class MakeDealHelper {
             return obj.symbol === this.adapterData.ticker;
         })
 
-        if (parseFloat(symbolPosition.positionAmt) === 0) return false;
+        console.log('symbolPosition');
+        console.log(symbolPosition);
+        console.log('symbolPosition');
+
+        if (parseFloat(symbolPosition.positionAmt) == 0) return this.currentPosition = false;
 
         if (parseFloat(symbolPosition.positionAmt) > 0) {
-            this.currentPosition = 'long';
+            console.log('long');
+            return this.currentPosition = 'long';
         } else if (parseFloat(symbolPosition.positionAmt) < 0) {
-            this.currentPosition = 'short'
+            console.log('short');
+            return this.currentPosition = 'short'
         }
 
         return null;
@@ -147,24 +153,25 @@ class MakeDealHelper {
     * @param {integer} decimals
     */
     async manageDeals() {
-        console.log(this.binance);
-        // if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
-        // if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
-        //     return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
+        console.log(this.currentPosition);
+        if (this.currentPosition === this.adapterData.action) return { Error: 'Position in current side also opened' };
+        if ((this.currentPosition === 'long' && this.adapterData.action === 'short') || (this.currentPosition === 'short' && this.adapterData.action === 'long'))
+            return { Error: `You need close ${this.currentPosition} if you want open ${this.adapterData.action}` };
+        if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
+            return { Error: `Current position is ${this.currentPosition}, you can't do this action: ${this.adapterData.action}` };
 
-        // switch (this.adapterData.action) {
-        //     case 'long':
-        //         return this.openBuyDeal();
-        //     case 'short':
-        //         return this.openSellDeal();
-        //     case 'close_short':
-        //         return this.openBuyDeal();
-        //     case 'close_long':
-        //         return this.openSellDeal();
-        //     default:
-        //         return { Error: 'Something went wrong with action' }
-        // }
-        return {test: 'test'};
+        switch (this.adapterData.action) {
+            case 'long':
+                return this.openBuyDeal();
+            case 'short':
+                return this.openSellDeal();
+            case 'close_short':
+                return this.openBuyDeal();
+            case 'close_long':
+                return this.openSellDeal();
+            default:
+                return { Error: 'Something went wrong with action' }
+        }
     }
 
     /**

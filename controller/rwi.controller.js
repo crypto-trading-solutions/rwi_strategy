@@ -41,17 +41,14 @@ class RwiController {
             // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
             const manageDealResult = await makeDealHelper.checkOpenOrders();
 
-            if (manageDealResult.Error) {
-                return res.status(400).send(manageDealResult);
-            }
-
             console.log('manageDealResult');
             console.log(manageDealResult);
             console.log('manageDealResult');
 
-            console.log('makeDealHelper');
-            console.log(makeDealHelper);
-            console.log('makeDealHelper');
+            if (manageDealResult.Error) {
+                await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, manageDealResult });
+                continue;
+            }
 
             // This function check given action and open appropriate deal
             // Action       |  OpenedDeal
@@ -65,9 +62,7 @@ class RwiController {
             console.log(makeDealResult);
             console.log('makeDealResult');
 
-            if (makeDealResult.Error) return res.status(400).send(makeDealResult);
-
-            dealsResult.push(makeDealResult);
+            await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, makeDealResult });
         }
 
         return res.status(200).send(dealsResult);
