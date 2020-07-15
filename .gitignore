@@ -65,8 +65,7 @@ typings/
 # Output of 'npm pack'
 *.tgz
 
-# Array with users accounts
-accounts.js
+accounts
 
 # Yarn Integrity file
 .yarn-integrity

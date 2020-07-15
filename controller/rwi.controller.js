@@ -9,7 +9,7 @@ const managePositions = require('../utils/managePositions');
 const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
-const accounts = require('../accounts');
+const accounts = require('../accounts/accounts');
 
 class RwiController {
     async makeDeal(req, res, next) {
