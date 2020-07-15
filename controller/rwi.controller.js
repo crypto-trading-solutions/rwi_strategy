@@ -9,6 +9,7 @@ const managePositions = require('../utils/managePositions');
 const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
+const accounts = require('../accounts/accounts');
 
 class RwiController {
     async makeDeal(req, res, next) {
@@ -24,45 +25,47 @@ class RwiController {
 
         const makeDealHelper = new makeDealHelperClass(adapterData, deposit);
 
-        /**
-        * Build object
-        * Set future leverage 
-        * Set future margin type
-        * Get exchange info
-        * Get symbol precisions
-        */
-        await makeDealHelper.build();
+        // Array for saving logs for all accounts
+        const dealsResult = [];
 
-        // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
-        const manageDealResult = await makeDealHelper.checkOpenOrders();
+        for (let i = 0; i < accounts.length; i++) {
+            /**
+            * Build object
+            * Set future leverage 
+            * Set future margin type
+            * Get exchange info
+            * Get symbol precisions
+            */
+            await makeDealHelper.build(accounts[i]);
 
-        if (manageDealResult.Error) {
-            return res.status(400).send(manageDealResult);
+            // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
+            const manageDealResult = await makeDealHelper.checkOpenOrders();
+
+            console.log('manageDealResult');
+            console.log(manageDealResult);
+            console.log('manageDealResult');
+
+            if (manageDealResult.Error) {
+                await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, manageDealResult });
+                continue;
+            }
+
+            // This function check given action and open appropriate deal
+            // Action       |  OpenedDeal
+            // LONG         |  BUY
+            // CLOSE_LONG   |  SELL
+            // SHORT        |  SELL
+            // CLOSE_SHORT  |  BUY
+            const makeDealResult = await makeDealHelper.manageDeals();
+
+            console.log('makeDealResult');
+            console.log(makeDealResult);
+            console.log('makeDealResult');
+
+            await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, makeDealResult });
         }
 
-        console.log('manageDealResult');
-        console.log(manageDealResult);
-        console.log('manageDealResult');
-
-        console.log('makeDealHelper');
-        console.log(makeDealHelper);
-        console.log('makeDealHelper');
-
-        // This function check given action and open appropriate deal
-        // Action       |  OpenedDeal
-        // LONG         |  BUY
-        // CLOSE_LONG   |  SELL
-        // SHORT        |  SELL
-        // CLOSE_SHORT  |  BUY
-        const makeDealResult = await makeDealHelper.manageDeals();
-        
-        console.log('makeDealResult');
-        console.log(makeDealResult);
-        console.log('makeDealResult');
-        
-        if(makeDealResult.Error) return res.status(400).send(makeDealResult);
-
-        return res.status(200).send(makeDealResult);
+        return res.status(200).send(dealsResult);
     }
 }
 
