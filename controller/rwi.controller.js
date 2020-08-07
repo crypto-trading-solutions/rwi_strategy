@@ -23,49 +23,54 @@ class RwiController {
 
         let deposit = process.env.ORDER_SIZE;
 
-        const makeDealHelper = new makeDealHelperClass(adapterData, deposit);
+        let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
 
         // Array for saving logs for all accounts
         const dealsResult = [];
+        const dealPromises = [];
 
         for (let i = 0; i < accounts.length; i++) {
-            /**
-            * Build object
-            * Set future leverage 
-            * Set future margin type
-            * Get exchange info
-            * Get symbol precisions
-            */
-            await makeDealHelper.build(accounts[i]);
+            let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
+            dealPromises.push(new Promise(async (resolve, reject) => {
+                /**
+                            * Build object
+                            * Set future leverage 
+                            * Set future margin type
+                            * Get exchange info
+                            * Get symbol precisions
+                            */
+                await makeDealHelper.build(accounts[i]);
 
-            // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
-            const manageDealResult = await makeDealHelper.checkOpenOrders();
+                // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
+                const manageDealResult = await makeDealHelper.checkOpenOrders();
 
-            console.log('manageDealResult');
-            console.log(manageDealResult);
-            console.log('manageDealResult');
+                console.log('accounts');
+                console.log(accounts[i]);
+                console.log('accounts');
 
-            if (manageDealResult.Error) {
-                await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, manageDealResult });
-                continue;
-            }
+                if (manageDealResult.Error) {
+                    await dealsResult.push({ user: { id: accounts[i].id, name: accounts[i].name }, manageDealResult });
+                    return;
+                }
 
-            // This function check given action and open appropriate deal
-            // Action       |  OpenedDeal
-            // LONG         |  BUY
-            // CLOSE_LONG   |  SELL
-            // SHORT        |  SELL
-            // CLOSE_SHORT  |  BUY
-            const makeDealResult = await makeDealHelper.manageDeals();
+                // This function check given action and open appropriate deal
+                // Action       |  OpenedDeal
+                // LONG         |  BUY
+                // CLOSE_LONG   |  SELL
+                // SHORT        |  SELL
+                // CLOSE_SHORT  |  BUY
+                resolve(makeDealHelper.manageDeals());
+            }));
 
-            console.log('makeDealResult');
-            console.log(makeDealResult);
-            console.log('makeDealResult');
-
-            await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, makeDealResult });
         }
 
-        return res.status(200).send(dealsResult);
+        Promise.all(dealPromises).then(res => {
+            console.log('res');
+            console.log(res);
+            console.log('res');
+        })
+
+        return res.status(200).send({ end: 'end' });
     }
 }
 
