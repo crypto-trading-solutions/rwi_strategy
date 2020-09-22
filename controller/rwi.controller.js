@@ -4,7 +4,6 @@ const validateData = require("../serializers/TradingViewAlert");
 const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const manageDeals = require('../utils/manageDeals');
-const tradingConfig = require('../tradingConfig');
 const managePositions = require('../utils/managePositions');
 const toPrecision = require('../utils/precision');
 
