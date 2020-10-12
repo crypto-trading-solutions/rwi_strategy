@@ -4,15 +4,17 @@ const validateData = require("../serializers/TradingViewAlert");
 const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const checkOpenOrders = require('../utils/checkOpenOrders');
-const tradingConfig = require('../tradingConfig');
 const managePositions = require('../utils/managePositions');
 const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
 const accounts = require('../accounts/accounts');
 
+console.log(accounts);
+
 class RwiController {
     async makeDeal(req, res, next) {
+        console.log(req.headers.host);
         if (!req.headers.host.includes('localhost')) return res.status(400).send({ error: 'Bad host' });
 
         console.log('req.body');
@@ -22,8 +24,6 @@ class RwiController {
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
 
         let deposit = process.env.ORDER_SIZE;
-
-        let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
 
         // Array for saving logs for all accounts
         const dealsResult = [];
