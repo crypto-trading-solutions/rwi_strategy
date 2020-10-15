@@ -37,7 +37,7 @@ class MakeDealHelper {
         await this.getSymbolPrecisions();
 
         // Bring the price to the correct precision, because Trading View sometimes send it with extra decimals 
-        await this.toPrecision();
+        await this.fixTradingviewDataPricePrecision();
 
         await this.countOrderSize();
 
@@ -79,7 +79,7 @@ class MakeDealHelper {
     /**
     * Format adapterData.price
     */
-    async toPrecision() {
+    async fixTradingviewDataPricePrecision() {
         const adapterData_price_str = this.adapterData.price.toString();
         const dotIndex = adapterData_price_str.indexOf('.');
 
