@@ -14,8 +14,8 @@ console.log(accounts);
 
 class RwiController {
     async makeDeal(req, res, next) {
-        console.log(req.headers.host);
-        if (!req.headers.host.includes('localhost')) return res.status(400).send({ error: 'Bad host' });
+        //Only local applications should contact this server
+        if (!req.headers.host.includes('localhost') && !req.headers.host.includes('127.0.0.1')) return res.status(400).send({ error: 'Bad host' });
 
         console.log('req.body');
         console.log(req.body);
