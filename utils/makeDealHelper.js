@@ -26,7 +26,7 @@ class MakeDealHelper {
     * Get symbol precisions
     * @param {object} account
     */
-    async build(account) {
+    async build(account, next) {
         // Create Binance req provider with account keys
         this.binance = new Binance(account.apiKeys.apiKey, account.apiKeys.secretKey);
 
@@ -106,17 +106,18 @@ class MakeDealHelper {
     }
 
     /**
-    * Get quantity precision and price precision for current ticker
+    * Get quantity precision and price precision for the current ticker
     * @param {object} futuresExchangeInfo
     * @param {string} ticker
     */
     async getSymbolPrecisions() {
-        for (let i = 0; i < this.futuresExchangeInfo.symbols.length; i++) {
-            if (this.futuresExchangeInfo.symbols[i].symbol === this.adapterData.ticker) {
-                this.symbolQuantityPrecision = this.futuresExchangeInfo.symbols[i].quantityPrecision;
-                this.symbolPricePrecision = this.futuresExchangeInfo.symbols[i].pricePrecision;
-                break;
-            }
+        const symbolInfo = this.futuresExchangeInfo.symbols.find(elem => elem.symbol == this.adapterData.ticker);
+        if (symbolInfo !== undefined) {
+            this.symbolQuantityPrecision = symbolInfo.quantityPrecision;
+            this.symbolPricePrecision = symbolInfo.pricePrecision;
+        }
+        else {
+            throw new Error(`Symbol with such ticket - ${this.adapterData.ticker} has not been found`);
         }
     }
 

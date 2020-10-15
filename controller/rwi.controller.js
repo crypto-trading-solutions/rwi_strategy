@@ -5,23 +5,29 @@ const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const checkOpenOrders = require('../utils/checkOpenOrders');
 const managePositions = require('../utils/managePositions');
-const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
 const accounts = require('../accounts/accounts');
 
+console.log('---------available accounts-----------');
 console.log(accounts);
+console.log('---------available accounts-----------');
 
 class RwiController {
     async makeDeal(req, res, next) {
         //Only local applications should contact this server
         if (!req.headers.host.includes('localhost') && !req.headers.host.includes('127.0.0.1')) return res.status(400).send({ error: 'Bad host' });
 
-        console.log('req.body');
+        console.log('---------req.body-----------');
         console.log(req.body);
-        console.log('req.body');
+        console.log('---------req.body-----------');
 
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
+
+        console.log('---------adapterData-----------');
+        console.log(adapterData);
+        console.log('---------adapterData-----------');
+
 
         let deposit = process.env.ORDER_SIZE;
 
@@ -33,13 +39,20 @@ class RwiController {
             let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
             dealPromises.push(new Promise(async (resolve, reject) => {
                 /**
-                            * Build object
-                            * Set future leverage 
-                            * Set future margin type
-                            * Get exchange info
-                            * Get symbol precisions
-                            */
-                await makeDealHelper.build(accounts[i]);
+                        * Build object
+                        * Set future leverage 
+                        * Set future margin type
+                        * Get exchange info
+                        * Get symbol precisions
+                        */
+                try {
+                    await makeDealHelper.build(accounts[i]);
+                } catch (err) {
+                    console.log(err.message);
+                    
+                    await dealsResult.push({ user: { id: accounts[i].id, name: accounts[i].name }, err });
+                    return;
+                }
 
                 // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
                 const manageDealResult = await makeDealHelper.checkOpenOrders();
