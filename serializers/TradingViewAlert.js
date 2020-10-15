@@ -24,7 +24,7 @@ class TradingViewAlert {
         this.validateTicker(ticker);
         this.validatePrice(parseFloat(price));
         this.validateTime(time);
-        this.validateStrategy(strategy);
+        //this.validateStrategy(strategy);
         this.validateAction(action);
     }
 
