@@ -6,7 +6,7 @@ class MakeDealHelper {
     constructor(adapterData, deposit) {
         this.adapterData = adapterData;
         this.deposit = deposit;
-        this.binance = new Binance(process.env.APIKEY, process.env.APISECRET);
+        this.binance = null;
 
         this.symbolQuantityPrecision = 0;
         this.symbolPricePrecision = 0;
@@ -27,8 +27,8 @@ class MakeDealHelper {
     * @param {object} account
     */
     async build(account) {
-        this.binance.apiKey = account.apiKeys.apiKey;
-        this.binance.secretKey = account.apiKeys.secretKey;
+        // Create Binance req provider with account keys
+        this.binance = new Binance(account.apiKeys.apiKey, account.apiKeys.secretKey);
 
         await this.binance.futuresLeverage(this.adapterData.ticker, 1)
         await this.binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
@@ -36,7 +36,7 @@ class MakeDealHelper {
         await this.getExchangeInfo();
         await this.getSymbolPrecisions();
 
-        // Bring the price to the correct precision, because Trading View sometimes send price like 229.400000002
+        // Bring the price to the correct precision, because Trading View sometimes send it with extra decimals 
         await this.toPrecision();
 
         await this.countOrderSize();
@@ -77,16 +77,20 @@ class MakeDealHelper {
     }
 
     /**
-    * Count order size
+    * Format adapterData.price
     */
     async toPrecision() {
-        const str = this.adapterData.price.toString();
-        const dotIndex = str.indexOf('.');
+        const adapterData_price_str = this.adapterData.price.toString();
+        const dotIndex = adapterData_price_str.indexOf('.');
 
-        if (dotIndex == -1) this.price = this.adapterData.price;
-
-        // Plus 1, because JS start count symbols from 0
-        return this.price = str.slice(0, dotIndex + this.symbolQuantityPrecision + 1);
+        // adapterData_price_str - Integer type 
+        if (dotIndex == -1) {
+            return this.price = adapterData_price_str;
+        }
+        else {
+            // Cut all after symbolPricePrecision
+            return this.price = adapterData_price_str.slice(0, dotIndex + this.symbolPricePrecision + 1);
+        }
     }
 
     /**
