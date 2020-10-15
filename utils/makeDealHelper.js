@@ -29,11 +29,12 @@ class MakeDealHelper {
     async build(account, next) {
         // Create Binance req provider with account keys
         this.binance = new Binance(account.apiKeys.apiKey, account.apiKeys.secretKey);
+        
+        await this.getExchangeInfo();
 
         await this.binance.futuresLeverage(this.adapterData.ticker, 1)
         await this.binance.futuresMarginType(this.adapterData.ticker, 'ISOLATED')
 
-        await this.getExchangeInfo();
         await this.getSymbolPrecisions();
 
         // Bring the price to the correct precision, because Trading View sometimes send it with extra decimals 
@@ -147,7 +148,13 @@ class MakeDealHelper {
         const decimals = this.symbolQuantityPrecision || 0;
         const number = this.deposit / this.price;
 
-        return this.orderSize = (Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals));
+        const calculatedOrderSize = Math.floor(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        if (calculatedOrderSize !== 0) {
+            return this.orderSize = calculatedOrderSize;
+        }
+        else {
+            throw new Error(`countOrderSize Error: It is more likely that, the deposit value / price = ${number} < symbolQuantityPrecision `);
+        }
     }
 
     /**
