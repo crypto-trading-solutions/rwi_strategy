@@ -19,12 +19,12 @@ class TradingViewAlert {
         ]);
     
         this.availableActions = ['long', 'short', 'close_long', 'close_short'];
-        this.availableStrategy = 'rwi';
+        //this.availableStrategy = 'rwi';
 
         this.validateTicker(ticker);
         this.validatePrice(parseFloat(price));
         this.validateTime(time);
-        this.validateStrategy(strategy);
+        //this.validateStrategy(strategy);
         this.validateAction(action);
     }
 
@@ -43,11 +43,11 @@ class TradingViewAlert {
         else this.time = time;
     }
 
-    validateStrategy(strategy) {
+    /*validateStrategy(strategy) {
         if(!strategy || this.availableStrategy !== strategy) 
             throw new Error(this.errors.get('strategy'));
         else this.strategy = strategy;
-    }
+    }*/
 
     validateAction(action) {
         if(!action || !this.availableActions.includes(action))

@@ -4,68 +4,67 @@ const validateData = require("../serializers/TradingViewAlert");
 const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
 const roundDown = require('../utils/roundDown');
 const checkOpenOrders = require('../utils/checkOpenOrders');
-const tradingConfig = require('../tradingConfig');
 const managePositions = require('../utils/managePositions');
-const toPrecision = require('../utils/precision');
 
 const makeDealHelperClass = require('../utils/makeDealHelper');
 const accounts = require('../accounts/accounts');
 
+console.log('---------available accounts-----------');
+console.log(accounts);
+console.log('---------available accounts-----------');
+
 class RwiController {
     async makeDeal(req, res, next) {
-        if (!req.headers.host.includes('localhost')) return res.status(400).send({ error: 'Bad host' });
+        //Only local applications should contact this server
+        if (!req.headers.host.includes('localhost') && !req.headers.host.includes('127.0.0.1')) return res.status(400).send({ error: 'Bad host' });
 
-        console.log('req.body');
+        console.log('---------req.body-----------');
         console.log(req.body);
-        console.log('req.body');
+        console.log('---------req.body-----------');
 
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
 
-        let deposit = process.env.ORDER_SIZE;
+        console.log('---------adapterData-----------');
+        console.log(adapterData);
+        console.log('---------adapterData-----------');
 
-        const makeDealHelper = new makeDealHelperClass(adapterData, deposit);
+
+        let deposit = process.env.ORDER_SIZE;
 
         // Array for saving logs for all accounts
         const dealsResult = [];
+        const dealPromises = [];
 
         for (let i = 0; i < accounts.length; i++) {
-            /**
-            * Build object
-            * Set future leverage 
-            * Set future margin type
-            * Get exchange info
-            * Get symbol precisions
-            */
-            await makeDealHelper.build(accounts[i]);
+            let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
+            dealPromises.push(new Promise(async (resolve, reject) => {
+                try {
+                    console.log('--------account--------');
+                    console.log(accounts[i]);
+                    console.log('--------account--------');
 
-            // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
-            const manageDealResult = await makeDealHelper.checkOpenOrders();
+                    await makeDealHelper.build(accounts[i]);
 
-            console.log('manageDealResult');
-            console.log(manageDealResult);
-            console.log('manageDealResult');
-
-            if (manageDealResult.Error) {
-                await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, manageDealResult });
-                continue;
-            }
-
-            // This function check given action and open appropriate deal
-            // Action       |  OpenedDeal
-            // LONG         |  BUY
-            // CLOSE_LONG   |  SELL
-            // SHORT        |  SELL
-            // CLOSE_SHORT  |  BUY
-            const makeDealResult = await makeDealHelper.manageDeals();
-
-            console.log('makeDealResult');
-            console.log(makeDealResult);
-            console.log('makeDealResult');
-
-            await dealsResult.push({ user:{id: accounts[i].id, name: accounts[i].name}, makeDealResult });
+                    resolve(makeDealHelper.manageDeals());
+                } catch (err) {
+                    await dealsResult.push({ user: { id: accounts[i].id, name: accounts[i].name }, err });
+                    reject(err);
+                }
+            }));
         }
 
-        return res.status(200).send(dealsResult);
+        //  Execute all dealPromises here
+        Promise.all(dealPromises).then(result => {
+            console.log('----------Promise.all result-------------');
+            console.log(result);
+            console.log('----------Promise.all result-------------');
+        }, error => {
+            console.log('----------Promise.all error-------------');
+            console.log(error.message);
+            console.log('----------Promise.all error-------------');
+        });
+
+        return res.status(200).send({ end: 'end' });
     }
 }
 
