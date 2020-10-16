@@ -218,7 +218,7 @@ class MakeDealHelper {
         const [openBuyDealError, openBuyDeal] = await to(
             this.binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
         )
-        if (openBuyDealError || openBuyDeal.code) throw new Error(`openSellDeal error: ${openBuyDealError}`);
+        if (openBuyDealError || openBuyDeal.code) throw new Error(`openSellDeal error:\nopenBuyDealError: ${openBuyDealError}\nopenBuyDeal.code: ${openBuyDeal.code}`);
 
         return { Success: 'Buy deal for long position successfully opened', openBuyDeal };
     }
