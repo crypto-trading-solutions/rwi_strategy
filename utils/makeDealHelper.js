@@ -65,9 +65,9 @@ class MakeDealHelper {
             return obj.symbol === this.adapterData.ticker;
         })
 
-        console.log('---------symbolPosition-----------');
-        console.log(symbolPosition);
-        console.log('---------symbolPosition-----------');
+        //console.log('---------symbolPosition-----------');
+        //console.log(symbolPosition);
+        //console.log('---------symbolPosition-----------');
 
         if (parseFloat(symbolPosition.positionAmt) == 0) {
             return this.currentPosition = null;
