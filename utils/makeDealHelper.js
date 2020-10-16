@@ -73,11 +73,9 @@ class MakeDealHelper {
             return this.currentPosition = null;
         }
         else if (parseFloat(symbolPosition.positionAmt) > 0) {
-            console.log('checkCurrentPosition: currently open position - LONG');
             return this.currentPosition = 'long';
         }
         else if (parseFloat(symbolPosition.positionAmt) < 0) {
-            console.log('checkCurrentPosition: currently open position - SHORT');
             return this.currentPosition = 'short'
         }
 
@@ -176,7 +174,7 @@ class MakeDealHelper {
     async manageDeals() {
         if (this.currentPosition !== null) {
             if (this.currentPosition === this.adapterData.action)
-                throw new Error(`manageDeals error: Position in current side also opened`);
+                throw new Error(`manageDeals error: Position in current side(${this.adapterData.action}) also opened`);
 
             else if ((this.currentPosition === 'long' && this.adapterData.action === 'short') || (this.currentPosition === 'short' && this.adapterData.action === 'long'))
                 throw new Error(`manageDeals error: You need close ${this.currentPosition} if you want open ${this.adapterData.action}`);
@@ -189,7 +187,7 @@ class MakeDealHelper {
             if(this.adapterData.action == "close_long" || this.adapterData.action == "close_short")
                 throw new Error(`manageDeals error:At the moment there is no open position to close`);
         }
-        console.log(`----------${this.adapterData.action}---------`);
+
         switch (this.adapterData.action) {
             case 'long':
                 return this.openBuyDeal();
