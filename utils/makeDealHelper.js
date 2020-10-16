@@ -184,6 +184,11 @@ class MakeDealHelper {
             else if ((this.currentPosition === 'long' && this.adapterData.action === 'close_short') || (this.currentPosition === 'short' && this.adapterData.action === 'close_long'))
                 throw new Error(`manageDeals error:Current position is ${this.currentPosition}, can't do action: ${this.adapterData.action}`);
         }
+        else
+        {
+            if(this.adapterData.action == "close_long" || this.adapterData.action == "close_short")
+                throw new Error(`manageDeals error:At the moment there is no open position to close`);
+        }
 
         switch (this.adapterData.action) {
             case 'long':
