@@ -18,9 +18,9 @@ class RwiController {
 
         const adapterData = new validateData(req.body.Ticker, req.body.Price, req.body.Time, req.body.Strategy, req.body.Action);
 
-        console.log('---------adapterData-----------');
-        console.log(adapterData);
-        console.log('---------adapterData-----------');
+        //console.log('---------adapterData-----------');
+        //console.log(adapterData);
+        //console.log('---------adapterData-----------');
 
 
         let deposit = process.env.ORDER_SIZE;
@@ -49,15 +49,9 @@ class RwiController {
         }
 
         //  Execute all dealPromises here
-        Promise.all(dealPromises).then(result => {
-            console.log('----------Promise.all result-------------');
-            console.log(result);
-            console.log('----------Promise.all result-------------');
-        }, error => {
-            console.log('----------Promise.all error-------------');
-            console.log(error.message);
-            console.log('----------Promise.all error-------------');
-        });
+        Promise.allSettled(dealPromises).then(results => {
+            console.log(results);
+           });
 
         return res.status(200).send({ end: 'end' });
     }
