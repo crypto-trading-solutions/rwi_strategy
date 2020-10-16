@@ -21,13 +21,13 @@ const handleHttpServerErrors = require('./utils/handleHttpServerErrors');
 // const TradingViewAlert = require("./serializers/TradingViewAlert");
 const BinanceRequestProvider = require('./serializers/BinanceRequestProvider');
 
-var express = require('express'),
+let express = require('express'),
     app     = express();
 
 app.set('port', port);
 app.set('ipaddr',ipAddress);
 
-var bodyParser = require('body-parser');
+let bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
