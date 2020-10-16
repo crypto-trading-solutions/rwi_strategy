@@ -1,12 +1,6 @@
-const to = require('await-to-js').default;
-const Binance = require("../serializers/BinanceRequestProvider");
 const validateData = require("../serializers/TradingViewAlert");
-const binance = new Binance(process.env.APIKEY, process.env.APISECRET);
-const roundDown = require('../utils/roundDown');
-const checkOpenOrders = require('../utils/checkOpenOrders');
-const managePositions = require('../utils/managePositions');
-
 const makeDealHelperClass = require('../utils/makeDealHelper');
+
 const accounts = require('../accounts/accounts');
 
 console.log('---------available accounts-----------');
