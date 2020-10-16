@@ -38,42 +38,19 @@ class RwiController {
         for (let i = 0; i < accounts.length; i++) {
             let makeDealHelper = new makeDealHelperClass(adapterData, deposit);
             dealPromises.push(new Promise(async (resolve, reject) => {
-                /*---------------------
-                - Build object
-                - Set future leverage 
-                - Set future margin type
-                - Get exchange info
-                - Get symbol precisions
-                ---------------------*/
                 try {
+                    console.log('--------account--------');
+                    console.log(accounts[i]);
+                    console.log('--------account--------');
+
                     await makeDealHelper.build(accounts[i]);
 
-                    // Check open orders. If open orders exist return ERROR, if no open orders return FALSE
-                    const manageDealResult = await makeDealHelper.checkOpenOrders();
-
-                    console.log('accounts');
-                    console.log(accounts[i]);
-                    console.log('accounts');
-
-                    if (manageDealResult.Error) {
-                        await dealsResult.push({ user: { id: accounts[i].id, name: accounts[i].name }, manageDealResult });
-                        return;
-                    }
-
-                    // This function check given action and open appropriate deal
-                    // Action       |  OpenedDeal
-                    // LONG         |  BUY
-                    // CLOSE_LONG   |  SELL
-                    // SHORT        |  SELL
-                    // CLOSE_SHORT  |  BUY
                     resolve(makeDealHelper.manageDeals());
                 } catch (err) {
-
                     await dealsResult.push({ user: { id: accounts[i].id, name: accounts[i].name }, err });
                     reject(err);
                 }
             }));
-
         }
 
         //  Execute all dealPromises here
@@ -81,7 +58,7 @@ class RwiController {
             console.log('----------Promise.all result-------------');
             console.log(result);
             console.log('----------Promise.all result-------------');
-        },error => {
+        }, error => {
             console.log('----------Promise.all error-------------');
             console.log(error.message);
             console.log('----------Promise.all error-------------');
