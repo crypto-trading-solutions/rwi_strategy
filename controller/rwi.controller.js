@@ -27,6 +27,7 @@ class RwiController {
 
         // Array for saving logs for all accounts
         const dealsResult = [];
+        
         const dealPromises = [];
 
         for (let i = 0; i < accounts.length; i++) {

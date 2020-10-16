@@ -189,7 +189,7 @@ class MakeDealHelper {
             if(this.adapterData.action == "close_long" || this.adapterData.action == "close_short")
                 throw new Error(`manageDeals error:At the moment there is no open position to close`);
         }
-
+        console.log(`----------${this.adapterData.action}---------`);
         switch (this.adapterData.action) {
             case 'long':
                 return this.openBuyDeal();
@@ -211,9 +211,9 @@ class MakeDealHelper {
         const [openSellDealError, openSellDeal] = await to(
             this.binance.createOrder(this.adapterData.ticker, 'SELL', 'LIMIT', this.orderSize, this.price)
         )
-        if (openSellDealError || openSellDeal.code) throw new Error(`openSellDeal error: ${openSellDealError}`);
-
-        return { Success: 'Sell deal for short position successfully opened', openSellDeal };
+        if (openSellDealError || openSellDeal.code) throw new Error(`openSellDeal error: ${openSellDealError}\openSellDeal.code: ${openSellDeal.code}`);
+       
+        return { Success: `Sell deal for short position successfully opened (${this.adapterData.action})`, openSellDeal };
     }
 
     /**
@@ -223,9 +223,9 @@ class MakeDealHelper {
         const [openBuyDealError, openBuyDeal] = await to(
             this.binance.createOrder(this.adapterData.ticker, 'BUY', 'LIMIT', this.orderSize, this.price)
         )
-        if (openBuyDealError || openBuyDeal.code) throw new Error(`openSellDeal error:\nopenBuyDealError: ${openBuyDealError}\nopenBuyDeal.code: ${openBuyDeal.code}`);
+        if (openBuyDealError || openBuyDeal.code) throw new Error(`openBuyDeal error:${openBuyDealError}\nopenBuyDeal.code: ${openBuyDeal.code}`);
 
-        return { Success: 'Buy deal for long position successfully opened', openBuyDeal };
+        return { Success: `Buy deal for long position successfully opened (${this.adapterData.action})`, openBuyDeal };
     }
 
 }
