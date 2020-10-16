@@ -51,9 +51,8 @@ class RwiController {
         //  Execute all dealPromises here
         Promise.allSettled(dealPromises).then(results => {
             console.log(results);
+            return res.status(200).send({ end: 'end' });
            });
-
-        return res.status(200).send({ end: 'end' });
     }
 }
 
